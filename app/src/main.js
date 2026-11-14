@@ -15,6 +15,7 @@ import { Menu } from './menu.js';
 import { Globe } from './globe.js';
 import { ResearchRoom } from './research.js';
 import { Museum } from './museum.js';
+import { Heli } from './heli.js';
 import { T, lang, setLang } from './i18n.js';
 
 const Q = new URLSearchParams(location.search);
@@ -103,7 +104,7 @@ async function boot() {
   app.ground = (x, z) => { for (const r of app.rings) if (r.field.contains(x, z)) return r.field.height(x, z) - h0; return null; };
   app.slope = (x, z) => { for (const r of app.rings) if (r.field.contains(x, z, r.ring.res * 2)) return r.field.slopeDeg(x, z, r.ring.res); return 0; };
   const bp = site.pois.find(p => p.kind === 'base'), fp = site.pois.find(p => p.id === site.legs[0].to), hab = app.habitat = new Habitat(app, bp.x, -bp.y, Math.atan2(-(fp.x - bp.x), fp.y - bp.y));
-  app.siteId = SITE; const room = app.room = new ResearchRoom(app, hab, import.meta.env.BASE_URL); const museum = app.museum = new Museum(app, hab, import.meta.env.BASE_URL);
+  app.siteId = SITE; const room = app.room = new ResearchRoom(app, hab, import.meta.env.BASE_URL); const museum = app.museum = new Museum(app, hab, import.meta.env.BASE_URL); const heli = app.heli = new Heli(app, import.meta.env.BASE_URL);
   app.walkGround = (x, z) => hab.groundY(x, z) ?? app.ground(x, z);
   const player = app.player = new Player(renderer, camera, scene, app.walkGround, renderer.domElement);
   const lim = site.rings[1].half - 30; player.canStandAt = (x, z) => Math.abs(x) < lim && Math.abs(z) < lim && hab.canPass(x, z) && museum.canPass(x, z) && (app.started || hab.indoors(x, z));   // the airlock stays shut until the mission starts
@@ -123,18 +124,18 @@ async function boot() {
   hud.panel.mesh.visible = false;
   const helpText = () => { $('help').innerHTML = T('<b>PC</b>: clic sul menu per scegliere, poi clic per catturare il mouse · <b>WASD</b> cammina · <b>Shift</b> veloce · <b>L</b> livello dati · <b>I</b> display sul braccio · <b>M</b> vista dall\'alto · <b>T</b> traccia del rover · <b>C</b> fonti dei dati · <b>G</b> prendi il globo, <b>+</b>/<b>−</b> scala · <b>R</b> ricomincia<br><b>Quest</b>: stick sinistro cammina (grilletto laterale = veloce) · stick destro avanti = teletrasporto, lati = gira · <b>grilletto</b> sceglie nel menu · <b>grilletto destro</b> vista dall\'alto · <b>grilletto laterale destro</b> display sul braccio · <b>grilletti laterali</b> sul globo: prendi, con due mani ridimensiona · <b>A</b> livello dati · <b>B</b> traccia del rover · <b>X</b> fonti dei dati · <b>Y</b> ricomincia'); };
   // language switch: every panel is redrawn from the same data
-  app.setLang = l => { setLang(l); app.buildLayers(); app.setLayer(app.layer); pois.redraw(); room.redraw(); museum.redraw(); credits.draw(); debrief.shown = false; arm.drawTile(); hab.redraw(); menu.draw(); globe.label(); globe.drawNames(true); helpText(); hud.acc = 1; };
+  app.setLang = l => { setLang(l); app.buildLayers(); app.setLayer(app.layer); pois.redraw(); room.redraw(); museum.redraw(); heli.draw(); credits.draw(); debrief.shown = false; arm.drawTile(); hab.redraw(); menu.draw(); globe.label(); globe.drawNames(true); helpText(); hud.acc = 1; };
   app.start = () => { if (app.started) return; app.started = true; app.dataMode = false; menu.close(); hab.redraw(); };
   // data only: no mission clock, the airlock stays shut, the astronaut walks straight into the research room
   app.explore = () => { app.dataMode = true; menu.close(); const [x, z] = hab.roomPos(); player.placeAt(x, z, hab.roomYaw()); };
   app.setLayer(+(Q.get('layer') ?? 0)); if (Q.get('track')) app.toggleTrack();
   app.reset = () => { if (player.lift) player.toggleOverview(); mission.reset(); player.placeAt(sx, sz, startYaw); app.started = false; app.dataMode = false; menu.show(true); globe.reset(); hab.redraw(); };
   // controls: A/B on the right controller, X/Y on the left; same actions on the keyboard
-  player.onButton = (hand, i) => { if (i === 0 && menu.open) { menu.click(); return; } if (i === 0 && room.click()) return; if (i === 1 && globe.busy(hand)) return; if (hand === 'right' && i === 0) player.toggleOverview(); else if (hand === 'right' && i === 1) arm.toggle(); else if (i === 0 || i === 1) return; else if (hand === 'right' && i === 4) app.setLayer(app.layer + 1); else if (hand === 'right' && i === 5) app.toggleTrack(); else if (hand === 'left' && i === 5) app.reset(); else if (hand === 'left' && i === 4) credits.toggle(); };
+  player.onButton = (hand, i) => { if (i === 0 && menu.open) { menu.click(); return; } if (i === 0 && room.click()) return; if (i === 0 && heli.near()) { heli.play(); return; } if (i === 1 && globe.busy(hand)) return; if (hand === 'right' && i === 0) player.toggleOverview(); else if (hand === 'right' && i === 1) arm.toggle(); else if (i === 0 || i === 1) return; else if (hand === 'right' && i === 4) app.setLayer(app.layer + 1); else if (hand === 'right' && i === 5) app.toggleTrack(); else if (hand === 'left' && i === 5) app.reset(); else if (hand === 'left' && i === 4) credits.toggle(); };
   addEventListener('keydown', e => { const m = /^Digit([1-9])$/.exec(e.code); if (m && +m[1] <= app.LAYERS.length) app.setLayer(+m[1] - 1);
-    if (e.code === 'KeyL') app.setLayer(app.layer + 1); if (e.code === 'KeyT') app.toggleTrack(); if (e.code === 'KeyR') app.reset(); if (e.code === 'KeyH') hud.panel.mesh.visible = !hud.panel.mesh.visible; if (e.code === 'KeyC') credits.toggle(); if (e.code === 'KeyM') player.toggleOverview(); if (e.code === 'KeyI') arm.toggle(); if (e.code === 'KeyV') helmet.off = !helmet.off; if (e.code === 'Enter' && menu.open) app.start(); });
+    if (e.code === 'KeyP' && heli.near(6)) heli.play(); if (e.code === 'KeyL') app.setLayer(app.layer + 1); if (e.code === 'KeyT') app.toggleTrack(); if (e.code === 'KeyR') app.reset(); if (e.code === 'KeyH') hud.panel.mesh.visible = !hud.panel.mesh.visible; if (e.code === 'KeyC') credits.toggle(); if (e.code === 'KeyM') player.toggleOverview(); if (e.code === 'KeyI') arm.toggle(); if (e.code === 'KeyV') helmet.off = !helmet.off; if (e.code === 'Enter' && menu.open) app.start(); });
   renderer.domElement.addEventListener('mousemove', e => menu.mouse.set(e.clientX / innerWidth * 2 - 1, 1 - e.clientY / innerHeight * 2));
-  player.onClick = () => !renderer.xr.isPresenting && (menu.open ? menu.click() : room.click());   // a click on a menu button is not a request to capture the mouse
+  player.onClick = () => !renderer.xr.isPresenting && (menu.open ? menu.click() : room.click() || (heli.near() && (heli.play(), true)));   // a click on a menu button is not a request to capture the mouse
   const vr = VRButton.createButton(renderer, { optionalFeatures: ['local-floor', 'bounded-floor'] }); document.body.appendChild(vr);
   helpText(); if (Q.get('data')) app.explore(); else if (Q.get('start') || Q.get('x')) app.start();
   $('boot').style.opacity = 0; setTimeout(() => $('boot').remove(), 700);
@@ -143,7 +144,7 @@ async function boot() {
     const dt = Math.min(clock.getDelta(), 0.1); shared.uTime.value += dt;
     menu.update(); player.update(dt); if (app.started) mission.idle(dt);
     camera.updateMatrixWorld(); camera.getWorldPosition(cam); shared.uCam.value.copy(cam); sky.position.copy(cam); camera.getWorldDirection(dir);
-    if (!player.lift && app.started) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam); room.update(dt, cam); museum.update(dt, cam);
+    if (!player.lift && app.started) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam); room.update(dt, cam); museum.update(dt, cam); heli.update(dt, cam);
     const tris = terrain.update(cam, dir, renderer.xr.isPresenting ? 0.2 : 0.35, app.baseRes || 1);
     renderer.render(scene, camera);
     fpsN++; fpsT += dt; if (fpsT > 1) { app.stats = { fps: Math.round(fpsN / fpsT), tris, calls: renderer.info.render.calls }; fpsN = 0; fpsT = 0; }
