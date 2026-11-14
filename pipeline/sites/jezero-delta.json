@@ -1,0 +1,67 @@
+{
+ "id": "jezero-delta",
+ "name": "Jezero \u2014 fronte del delta (Three Forks / Hawksbill Gap)",
+ "body": "Mars",
+ "radius_m": 3396190,
+ "lon0": 77.4055,
+ "lat0": 18.4555,
+ "rings": [
+  {
+   "name": "inner",
+   "half": 800,
+   "res": 1,
+   "tile": 100,
+   "lods": [
+    1,
+    2,
+    4,
+    8
+   ],
+   "lodDist": [
+    50,
+    150,
+    400
+   ],
+   "dtm": "hirise_dtm",
+   "ortho": "hirise_ortho",
+   "orthoTiles": 4,
+   "orthoPx": 1600
+  },
+  {
+   "name": "mid",
+   "half": 3600,
+   "res": 8,
+   "tile": 800,
+   "lods": [
+    1,
+    2,
+    4
+   ],
+   "lodDist": [
+    900,
+    2200
+   ],
+   "dtm": "hirise_dtm",
+   "ortho": "hirise_ortho",
+   "orthoTiles": 1,
+   "orthoPx": 4096
+  },
+  {
+   "name": "outer",
+   "half": 14400,
+   "res": 40,
+   "tile": 3600,
+   "lods": [
+    1,
+    2
+   ],
+   "lodDist": [
+    8000
+   ],
+   "dtm": "ctx_dtm",
+   "ortho": "ctx_ortho",
+   "orthoTiles": 1,
+   "orthoPx": 4096
+  }
+ ]
+}
