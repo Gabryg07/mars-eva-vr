@@ -49,9 +49,9 @@ void main() {
 }`;
 
 const FRAG = COMMON + /* glsl */`
-uniform sampler2D uO0, uO1, uO2, uS0, uS1, uS2, uOverlay;
+uniform sampler2D uO0, uO1, uO2, uS0, uS1, uS2, uOverlay, uNav;
 uniform vec4 uHole;               // finer level footprint (cx, cz, half) — this level is not drawn there
-uniform float uFogDist, uDetail, uOpacity, uOverlayHalf, uOverlayOn, uRouteOn;
+uniform float uFogDist, uDetail, uOpacity, uOverlayHalf, uOverlayOn, uRouteOn, uTrackOn, uTime;
 uniform int uLayer;               // 0 image, 1 slope/hazard, 2 elevation, 3+ overlay texture
 uniform vec3 uCam, uFog, uSlopeLimits;
 uniform vec2 uElevRange;
@@ -93,6 +93,13 @@ void main() {
   } else if (uLayer >= 3 && uOverlayOn > 0.5 && m < uOverlayHalf) {
     vec4 o = textureLod(uOverlay, (p + uOverlayHalf) / (2.0 * uOverlayHalf), 0.0);
     col = mix(col, o.rgb * shade, o.a * 0.7);
+  }
+  // planned EVA route and the rover's real track, drawn from a distance-field texture so they hug the ground at any detail level
+  if (m < uRing0.x && (uRouteOn > 0.5 || uTrackOn > 0.5)) {
+    vec3 nav = textureLod(uNav, (p + uRing0.x + 0.5 * uRing0.y) / (uRing0.z * uRing0.y), 0.0).rgb * 25.5;
+    float wd = 0.35 + dist * 0.004;
+    if (uTrackOn > 0.5) col = mix(col, vec3(1.0), (1.0 - smoothstep(wd * 0.5, wd * 0.5 + 0.25, nav.g)) * 0.75);
+    if (uRouteOn > 0.5) { float core = 1.0 - smoothstep(wd, wd + 0.3, nav.r); col = mix(col, vec3(0.2, 0.9, 1.0), core * 0.9); col += vec3(0.1, 0.45, 0.5) * exp(-nav.r * 0.9) * 0.35; }
   }
   col = mix(col, uFog, 1.0 - exp(-dist / uFogDist));
   gl_FragColor = vec4(col, uOpacity);
