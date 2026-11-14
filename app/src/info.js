@@ -1,7 +1,8 @@
 // Wrist panel (legend of the active data layer, weather, controls) and the "data and sources" board.
 // Everything shown here is read from the site file, so a new site brings its own credits.
 import * as THREE from 'three';
-import { Panel, rrect, text, wrap } from './ui.js';
+import { Panel, rrect, text, wrap, fmtHM, fmtDist } from './ui.js';
+import { lmstStr } from './mission.js';
 
 export class Wrist {
   constructor(app) {
@@ -51,5 +52,29 @@ export class Credits {
     const m = this.panel.mesh; m.visible = !m.visible; this.app.hud.panel.mesh.visible = !m.visible; if (!m.visible) return;
     const p = this.app.player, h = p.head(), a = p.headYaw(), ux = -Math.sin(a), uz = -Math.cos(a), r = 2.3;
     m.position.set(h.x + ux * r, h.y + 0.05, h.z + uz * r); m.rotation.set(0, Math.atan2(-ux, -uz), 0);
+  }
+}
+
+// End-of-EVA debrief: what the walk cost in time, oxygen and dose, shown when the astronaut is back at base.
+export class Debrief {
+  constructor(app) { this.app = app; this.panel = new Panel(2.2, 1.45, 1024 / 2.2, { depthTest: false }); this.panel.mesh.visible = false; this.panel.mesh.renderOrder = 140; app.scene.add(this.panel.mesh); this.shown = false; }
+  update() {
+    const { mission, player } = this.app, m = this.panel.mesh;
+    if (!mission.done) { if (this.shown) { this.shown = false; m.visible = false; } return; }
+    if (this.shown) return; this.shown = true;
+    const p = mission.p, st = mission.state(player.head()), used = 1 - st.o2Frac, lim = p.slopeLimitsDeg, k = mission.peakSlope < lim[0] ? 0 : mission.peakSlope < lim[1] ? 1 : mission.peakSlope < lim[2] ? 2 : 3;
+    const cls = [['agevole', '#35d07f'], ['impegnativa', '#f6d21f'], ['critica', '#ff8a1e'], ['oltre il limite della tuta', '#ff3b3b']][k], reserveOk = st.o2Frac >= p.oxygen.reserveFraction;
+    const earthDays = mission.dose / (2400 / 365.25), num = v => String(v).replace('.', ',');
+    const rows = [['Durata', `${fmtHM(mission.t)}, rientro alle ${lmstStr(st.lmst)} ora locale`, '#fff'], ['Strada', `${fmtDist(mission.dist)} a piedi, ${Math.round(mission.climb)} m di salita`, '#fff'],
+      ['Ossigeno', `usato il ${Math.round(used * 100)}% della bombola, riserva del ${Math.round(p.oxygen.reserveFraction * 100)}% ${reserveOk ? 'rispettata' : 'intaccata'}`, reserveOk ? '#35d07f' : '#ff5a5a'],
+      ['Radiazioni', `${num(mission.dose.toFixed(1))} µSv, come ${num(earthDays.toFixed(1))} giorni di fondo naturale sulla Terra`, '#fff'], ['Pendenza', `massima affrontata ${Math.round(mission.peakSlope)}°: ${cls[0]}`, cls[1]],
+      ['Luce', st.daylight > 0 ? `${fmtHM(st.daylight)} al tramonto` : 'rientro dopo il tramonto', st.daylight > 1800 ? '#fff' : '#ff5a5a']];
+    this.panel.draw((c, W, H) => {
+      rrect(c, 4, 4, W - 8, H - 8, 30); c.fillStyle = 'rgba(14,9,6,0.93)'; c.fill(); c.lineWidth = 4; c.strokeStyle = '#5be08a'; c.stroke();
+      text(c, 'Uscita completata', 44, 82, 50, '#fff', 700); text(c, `${mission.visited.size - 1} tappe su ${mission.order.length - 2} · rientro alla base`, 44, 124, 26, '#5be08a', 600);
+      let y = 196; for (const [k2, t, col] of rows) { text(c, k2.toUpperCase(), 44, y, 22, '#ffb37a', 700); text(c, t, 230, y, 29, col, 500); y += 62; }
+      text(c, 'Premi Y (R sulla tastiera) per ricominciare · X per i dati e le fonti', W / 2, H - 36, 22, '#d9c4b2', 400, 'center');
+    });
+    const h = player.head(), a = player.headYaw(), ux = -Math.sin(a), uz = -Math.cos(a), r = 2.5; m.position.set(h.x + ux * r, h.y + 0.4, h.z + uz * r); m.rotation.set(0, Math.atan2(-ux, -uz), 0); m.visible = true;
   }
 }

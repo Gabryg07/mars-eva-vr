@@ -6,7 +6,7 @@ import { Player } from './player.js';
 import { Mission } from './mission.js';
 import { Hud } from './hud.js';
 import { Pois } from './pois.js';
-import { Wrist, Credits } from './info.js';
+import { Wrist, Credits, Debrief } from './info.js';
 
 const Q = new URLSearchParams(location.search);
 const SITE = Q.get('site') || 'jezero-delta';
@@ -97,7 +97,7 @@ async function boot() {
   player.onMove = (a, c) => mission.move(a, c);
   const pois = app.pois = new Pois(app, base); world.add(pois.group);
   const hud = app.hud = new Hud(app);
-  const wrist = app.wrist = new Wrist(app), credits = app.credits = new Credits(app); app.onLayer = () => wrist.draw();
+  const wrist = app.wrist = new Wrist(app), credits = app.credits = new Credits(app), debrief = app.debrief = new Debrief(app); app.onLayer = () => wrist.draw();
   app.setLayer(+(Q.get('layer') ?? 0)); if (Q.get('track')) app.toggleTrack();
   app.reset = () => { if (player.lift) player.toggleOverview(); mission.reset(); player.placeAt(b.x + 4, -b.y + 4, startYaw); };
   // controls: A/B on the right controller, X/Y on the left; same actions on the keyboard
@@ -112,7 +112,7 @@ async function boot() {
     const dt = Math.min(clock.getDelta(), 0.1); shared.uTime.value += dt;
     player.update(dt); mission.idle(dt);
     camera.updateMatrixWorld(); camera.getWorldPosition(cam); shared.uCam.value.copy(cam); sky.position.copy(cam); camera.getWorldDirection(dir);
-    if (!player.lift) mission.check(cam); pois.update(cam); hud.update(dt); wrist.attach();
+    if (!player.lift) mission.check(cam); pois.update(cam); hud.update(dt); wrist.attach(); debrief.update();
     const tris = terrain.update(cam, dir, renderer.xr.isPresenting ? 0.2 : 0.35, app.baseRes || 1);
     renderer.render(scene, camera);
     fpsN++; fpsT += dt; if (fpsT > 1) { app.stats = { fps: Math.round(fpsN / fpsT), tris, calls: renderer.info.render.calls }; fpsN = 0; fpsT = 0; }

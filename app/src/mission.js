@@ -16,7 +16,7 @@ export class Mission {
   move(a, b) {   // a, b: world positions (x east, z south)
     const L = Math.hypot(b.x - a.x, b.z - a.z); if (L < 1e-4) return; const n = Math.max(1, Math.ceil(L / 2)), dl = L / n; let h0 = this.ground(a.x, a.z) ?? 0;
     for (let i = 1; i <= n; i++) { const f = i / n, h1 = this.ground(a.x + (b.x - a.x) * f, a.z + (b.z - a.z) * f) ?? h0, dh = h1 - h0, tanS = dh / dl, v = this.speed(tanS);
-      this.advance(dl / v, this.power(v, tanS / Math.sqrt(1 + tanS * tanS))); this.dist += Math.hypot(dl, dh); if (dh > 0) this.climb += dh; h0 = h1; }
+      this.advance(dl / v, this.power(v, tanS / Math.sqrt(1 + tanS * tanS))); this.dist += Math.hypot(dl, dh); this.peakSlope = Math.max(this.peakSlope, Math.atan(Math.abs(tanS)) * 180 / Math.PI); if (dh > 0) this.climb += dh; h0 = h1; }
   }
   get target() { return this.done ? null : this.pois[this.order[this.leg]]; }
   get base() { return this.pois[this.order[0]]; }
