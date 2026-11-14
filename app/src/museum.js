@@ -25,6 +25,7 @@ export class Museum {
     // closing panel on the lost missions, at the end of the back row
     const last = this.items[this.items.length - 1]; this.lost = this.sign(last.lx + WIDTH[last.c.id] / 2 + 4, ROW_Z.orbit - 3, 1.6, 1.45, (c, W, H) => this.drawLost(c, W, H));
     this.suit();
+    this.selfie(165.8, 126.5);   // Three Forks selfie (PIA25681), at the rover's position on sol 684
     // wayfinding at the foot of the airlock ramp
     this.way = this.sign(-hab.side * 2.6, -9.8, 1.3, 0.62, (c, W, H) => this.drawWay(c, W, H), 0);
     const [cx, cz] = hab.world(0, (ROW_Z.surface + ROW_Z.orbit) / 2); this.cx = cx; this.cz = cz;
@@ -78,9 +79,20 @@ export class Museum {
     let y = wrap(c, SUIT.name, 26, 92, W - 52, 34, 40, '#fff', 700); y = wrap(c, L(SUIT.text), 26, y + 8, W - 52, 21, 28, '#f2e9e1');
     wrap(c, L(SUIT.note), 26, y + 14, W - 52, 19, 25, '#d9c4b2'); text(c, L({ it: 'Modello 3D NASA (NASA 3D Resources)', en: 'NASA 3D model (NASA 3D Resources)' }), 26, H - 20, 16, '#a8988a', 400);
   }
+  selfie(x, z) {   // a photo stand on the very spot where Perseverance took its Three Forks selfie
+    const { app, hab } = this, gy = app.ground(x, z) ?? 0, p = new Panel(1.6, 1.2, 500, { depthTest: true }), m = p.mesh; m.renderOrder = 10; m.material.transparent = false; m.material.depthWrite = true;
+    m.position.set(x, gy + 1.35, z); m.rotation.y = Math.atan2(hab.cx - x, hab.cz - z); app.world.add(m);
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.8, 0.08), dark()); post.position.set(x, gy + 0.4, z); app.world.add(post);
+    const im = new Image(); const draw = () => p.draw((c, W, H) => { rrect(c, 4, 4, W - 8, H - 8, 20); c.fillStyle = 'rgba(14,10,8,0.96)'; c.fill(); c.lineWidth = 4; c.strokeStyle = '#ffffff'; c.stroke();
+      if (im.complete && im.naturalWidth) c.drawImage(im, 20, 20, W - 40, (W - 40) * im.height / im.width);
+      text(c, L({ it: 'Qui Perseverance si è fatto un selfie', en: 'Perseverance took a selfie right here' }), 22, H - 92, 30, '#fff', 700);
+      text(c, L({ it: 'Three Forks, sol 684 (22 gennaio 2023): accanto al deposito di campioni', en: 'Three Forks, sol 684 (22 January 2023): next to the sample depot' }), 22, H - 56, 21, '#d9c4b2', 500);
+      text(c, 'NASA/JPL-Caltech/MSSS · PIA25681', 22, H - 24, 17, '#a8988a', 400); });
+    im.onload = draw; im.src = `${this.root}research/selfies/three_forks.jpg`; draw(); this.selfieDraw = draw; this.selfiePos = [x, z];
+  }
   canPass(x, z) { if (this.suitPos && Math.hypot(x - this.suitPos[0], z - this.suitPos[1]) < 0.5) return false; if (!this.g.visible) return true; for (const it of this.items) if (Math.hypot(x - it.x, z - it.z) < it.r) return false; for (const s of this.signs) if (Math.hypot(x - s.x, z - s.z) < s.r) return false; return true; }
   update(dt, cam) { const d = Math.hypot(cam.x - this.cx, cam.z - this.cz); this.g.visible = d < 420; if (!this.loaded && this.app.started && d < 160) this.load(); }
-  redraw() { for (const s of this.signs) s.draw(); this.suitPanel?.draw(); }
+  redraw() { for (const s of this.signs) s.draw(); this.suitPanel?.draw(); this.selfieDraw?.(); }
   drawPanel(c, W, H, cr) {
     const orbit = cr.row === 'orbit', col = orbit ? '#7fe0ff' : '#ffb37a';
     rrect(c, 4, 4, W - 8, H - 8, 22); c.fillStyle = 'rgba(14,10,8,0.96)'; c.fill(); c.lineWidth = 5; c.strokeStyle = col; c.stroke();

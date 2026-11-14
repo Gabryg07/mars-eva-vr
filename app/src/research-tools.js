@@ -13,6 +13,13 @@ function lonlat(site, x, y) {   // inverse of the local orthographic frame
   const lat = Math.asin(Math.cos(c) * Math.sin(p0) + y * Math.sin(c) * Math.cos(p0) / rho), lon = site.lon0 / R2D + Math.atan2(x * Math.sin(c), rho * Math.cos(p0) * Math.cos(c) - y * Math.sin(p0) * Math.sin(c));
   return [lon * R2D, lat * R2D];
 }
+// Perseverance selfies (NASA/JPL-Caltech/MSSS): the sol comes from the release date; the place is the rover's localized position on that sol
+export const SELFIES = [
+  { id: 'three_forks', name: 'Three Forks', sol: 684, date: { it: '22 gennaio 2023', en: '22 January 2023' }, note: { it: 'al deposito dei campioni, sulla nostra rotta (tappa Three Forks)', en: 'at the sample depot, on our route (Three Forks stop)' } },
+  { id: 'cheyava_falls', name: 'Cheyava Falls', sol: 1217, date: { it: '23 luglio 2024', en: '23 July 2024' }, note: { it: 'Neretva Vallis, margine nord della valle del fiume', en: 'Neretva Vallis, northern edge of the river valley' } },
+  { id: 'witch_hazel_hill', name: 'Witch Hazel Hill', sol: 1501, date: { it: '10 maggio 2025', en: '10 May 2025' }, note: { it: 'sul bordo del cratere Jezero', en: 'on the rim of Jezero crater' } },
+  { id: 'lac_de_charmes', name: 'Lac de Charmes', sol: 1797, date: { it: '11 marzo 2026', en: '11 March 2026' }, note: { it: 'oltre il bordo occidentale, affioramento Arathusa', en: 'beyond the western rim, Arathusa outcrop' } },
+];
 const SLOPE_COL = ['#35d07f', '#f6d21f', '#ff8a1e', '#ff3b3b'];
 
 // ---------------------------------------------------------------- calendar
@@ -21,6 +28,8 @@ export class Calendar {
     this.room = room; this.app = room.app; this.sol = 663; this.playing = false; this.acc = 0; this.hov = null; this.data = null; this.dirty = true;
     this.pnl = new Panel(3.2, 1.36, 600, { depthTest: true });
     const im = new Image(); im.onload = () => { this.map = im; this.draw(); }; im.src = base + 'traverse_map.jpg';
+    const ic = new Image(); ic.onload = () => { this.icon = ic; this.draw(); }; ic.src = base + 'rover_icon.png';
+    this.selfImg = {}; for (const sf of SELFIES) { const si = new Image(); si.onload = () => { this.selfImg[sf.id] = si; this.draw(); }; si.src = base + 'selfies/' + sf.id + '.jpg'; }
     fetch(base + 'activity.json').then(r => r.json()).then(d => { this.data = d; this.wps = d.waypoints; this.max = Math.max(this.wps[this.wps.length - 1][0], ...Object.keys(d.activity).map(Number));
       this.samples = Object.fromEntries(d.samples.map(s => [s.sol, s])); this.depot = Object.fromEntries(d.depot.map(([n, s]) => [s, n])); this.heli = Object.fromEntries(d.heli.map(([s, f]) => [s, f]));
       room.data = d; room.onData?.(); this.draw(); }).catch(e => console.warn('activity', e));
@@ -43,6 +52,7 @@ export class Calendar {
     const d = this.data, out = [], a = d.activity[sol] || {}, i = this.wpAt(sol), w = i == null ? null : this.wps[i];
     if (w && w[0] === sol) { const prev = i > 0 ? this.wps[i - 1][4] : 0, dd = w[4] - prev; out.push([dd > 1 ? L({ it: `Guida: ${fmtDist(dd)} percorsi in questo sol`, en: `Drive: ${fmtDist(dd)} covered this sol` }) : L({ it: 'Localizzazione a fine guida', en: 'End-of-drive localization' }), '#7fe0ff']); }
     else if (w) out.push([L({ it: `Fermo: ultima guida nel sol ${w[0]}`, en: `Parked: last drive on sol ${w[0]}` }), '#d9c4b2']);
+    for (const sf of SELFIES) if (Math.abs(sf.sol - sol) <= 2) out.push([L({ it: `Selfie «${sf.name}» (${L(sf.date)}): ${L(sf.note)}`, en: `"${sf.name}" selfie (${L(sf.date)}): ${L(sf.note)}` }), '#ffffff']);
     const sm = this.samples[sol]; if (sm) out.push([L({ it: `Prelievo del campione «${sm.name}» (${L(sm.rock)}, ${sm.outcrop})`, en: `Core sample "${sm.name}" collected (${L(sm.rock)}, ${sm.outcrop})` }), '#ffd166']);
     const dp = this.depot[sol]; if (dp) out.push([L({ it: `Provetta «${dp}» posata nel deposito di Three Forks`, en: `Tube "${dp}" dropped at the Three Forks depot` }), '#ffd166']);
     const hf = this.heli[sol]; if (hf) out.push([L({ it: `Ingenuity: volo ${hf}`, en: `Ingenuity: flight ${hf}` }), '#c9a7ff']);
@@ -68,7 +78,11 @@ export class Calendar {
         if (cur >= 0) { c.lineWidth = 5; c.strokeStyle = '#33e6ff'; c.beginPath(); for (let i = 0; i <= cur; i++) i ? c.lineTo(X(w[i][1]), Y(w[i][2])) : c.moveTo(X(w[i][1]), Y(w[i][2])); c.stroke(); }
         for (const s of this.data.samples) { const k = this.wpAt(s.sol); if (k == null) continue; c.fillStyle = s.sol <= this.sol ? '#ffd166' : 'rgba(255,209,102,0.35)'; c.beginPath(); c.arc(X(w[k][1]), Y(w[k][2]), 7, 0, 7); c.fill(); }
         c.fillStyle = '#fff'; c.beginPath(); c.arc(X(w[0][1]), Y(w[0][2]), 7, 0, 7); c.fill(); text(c, L({ it: 'atterraggio', en: 'landing' }), X(w[0][1]) + 10, Y(w[0][2]) + 22, 18, '#fff', 600);
-        if (cur >= 0) { const p = w[cur]; c.fillStyle = '#ff5a3c'; c.beginPath(); c.arc(X(p[1]), Y(p[2]), 12, 0, 7); c.fill(); c.lineWidth = 3; c.strokeStyle = '#fff'; c.stroke(); }
+        for (const sf of SELFIES) { const k = this.wpAt(sf.sol), im = this.selfImg[sf.id]; if (k == null) continue; const x = X(w[k][1]), y = Y(w[k][2]), on = sf.sol <= this.sol, tw = 64, th = 40;   // selfie thumbnails where they were taken
+          c.globalAlpha = on ? 1 : 0.5; const bx = x + 26, by = y + 22; c.strokeStyle = '#fff'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, y); c.lineTo(bx, by); c.stroke(); c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y, 4, 0, 7); c.fill(); c.fillRect(bx - 3, by - 3, tw + 6, th + 6); if (im) c.drawImage(im, bx, by, tw, th); c.globalAlpha = 1; }   // offset down-right, so the rover icon never hides it
+        if (cur >= 0) { const p = w[cur], x = X(p[1]), y = Y(p[2]);   // the rover itself marks where it is
+          if (this.icon) { const ih = 54, iw = ih * this.icon.width / this.icon.height; c.fillStyle = 'rgba(51,230,255,0.35)'; c.beginPath(); c.ellipse(x, y, iw * 0.45, 9, 0, 0, 7); c.fill(); c.drawImage(this.icon, x - iw / 2, y - ih + 6, iw, ih); }
+          else { c.fillStyle = '#ff5a3c'; c.beginPath(); c.arc(x, y, 12, 0, 7); c.fill(); } }
       }
       c.restore(); const k1 = mw / (BBOX[1] - BBOX[0]) * 2000; c.fillStyle = '#fff'; c.fillRect(mx + 20, my + mh - 22, k1, 5); text(c, '2 km', mx + 20, my + mh - 30, 18, '#fff', 700); text(c, 'N ↑', mx + mw - 60, my + 32, 22, '#fff', 700);
       // right column: the selected sol
