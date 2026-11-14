@@ -59,7 +59,7 @@ export class Player {
       const k = this.keys; mz = (k.KeyW || k.ArrowUp ? 1 : 0) - (k.KeyS || k.ArrowDown ? 1 : 0); mx = (k.KeyD || k.ArrowRight ? 1 : 0) - (k.KeyA || k.ArrowLeft ? 1 : 0); fast = k.ShiftLeft || k.ShiftRight;
     } else {
       const L = this._pad('left'), Rr = this._pad('right');
-      for (const [hand, pad] of [['left', L], ['right', Rr]]) if (pad) for (const [i, on] of [[0, pad.trigger], [4, pad.a], [5, pad.b]]) { const k = hand + i; if (on && !this._btn[k]) this.onButton?.(hand, i); this._btn[k] = !!on; }
+      for (const [hand, pad] of [['left', L], ['right', Rr]]) if (pad) for (const [i, on] of [[0, pad.trigger], [1, pad.grip], [4, pad.a], [5, pad.b]]) { const k = hand + i; if (on && !this._btn[k]) this.onButton?.(hand, i); this._btn[k] = !!on; }
       if (L) { if (Math.hypot(L.x, L.y) > 0.15) { mx = L.x; mz = -L.y; } fast = L.grip; }
       if (Rr) {
         if (Math.abs(Rr.x) > 0.65 && Math.abs(Rr.y) < 0.5) { if (!this.snapLatch) { this._turn(-Math.sign(Rr.x) * Math.PI / 6); this.snapLatch = true; } } else if (Math.abs(Rr.x) < 0.3) this.snapLatch = false;
