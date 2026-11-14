@@ -24,6 +24,7 @@ export class Pois {
       if (p.photo) { const pw = 440, ph = Math.round(pw * p.photo.h / p.photo.w); if (img) c.drawImage(img, 36, top, pw, ph); else { c.fillStyle = '#3a2418'; c.fillRect(36, top, pw, ph); }
         text(c, `Foto reale: Perseverance, ${p.photo.camera}, sol ${p.photo.sol}`, 36, top + ph + 28, 19, '#ffb37a', 600); text(c, p.photo.credit, 36, top + ph + 52, 17, '#d9c4b2'); tx = 36 + pw + 30; tw = W - tx - 36; }
       ty = wrap(c, p.text, tx, ty, tw, p.photo ? 29 : 31, p.photo ? 38 : 42, '#fff', 400);
+      if (p.meda) text(c, `Aria nel sol ${p.meda.sol} (MEDA): da ${Math.round(p.meda.min)} a ${Math.round(p.meda.max)} °C`, tx, Math.min(ty + 8, H - 110), 22, '#7fe0ff', 600);
       if (leg) { const y = H - 42; c.fillStyle = 'rgba(255,255,255,0.14)'; c.fillRect(36, y - 42, W - 72, 2);
         text(c, `Prossimo tratto verso ${this.app.mission.pois[leg.to].name}: ${fmtDist(leg.length)}, salita ${Math.round(leg.climb)} m, pendenza massima ${Math.round(leg.maxSlope)}°`, 36, y, 23, '#7fe0ff', 600); }
     });

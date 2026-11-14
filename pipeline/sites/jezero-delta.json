@@ -127,6 +127,12 @@
     "w": 1024,
     "h": 746,
     "credit": "NASA/JPL-Caltech/ASU"
+   },
+   "meda": {
+    "sol": 690,
+    "min": -84.4,
+    "max": -16.8,
+    "source": "MEDA CAL_ATS, PDS Atmospheres Node; minimi e massimi estratti dal gruppo Mars Pathfinder (github.com/hritvikarora/marspineapple)"
    }
   },
   {
@@ -135,7 +141,7 @@
    "sol": 565,
    "kind": "science",
    "title": "Cape Nukshak: la base del delta",
-   "text": "Strati sedimentari a grana fine, depositati quando il cratere ospitava un lago. Il rover ha carotato qui l'affioramento Amalik. Obiettivo: campionare gli strati più bassi e antichi.",
+   "text": "Strati sedimentari a grana fine, depositati quando il cratere ospitava un lago. Il rover ha prelevato qui le carote Shuyak e Mageik dall'affioramento Amalik. Obiettivo: campionare gli strati più bassi e antichi.",
    "photo": {
     "file": "photos/nukshak.jpg",
     "imageid": "ZL0_0565_0717090427_303EBY_N0280000ZCAM08586_0340LMJ",
@@ -144,6 +150,12 @@
     "w": 1024,
     "h": 746,
     "credit": "NASA/JPL-Caltech/ASU"
+   },
+   "meda": {
+    "sol": 565,
+    "min": -87.3,
+    "max": -23.6,
+    "source": "MEDA CAL_ATS, PDS Atmospheres Node; minimi e massimi estratti dal gruppo Mars Pathfinder (github.com/hritvikarora/marspineapple)"
    }
   },
   {
@@ -169,7 +181,7 @@
    "sol": 502,
    "kind": "science",
    "title": "Hawksbill Gap: Wildcat Ridge e Skinner Ridge",
-   "text": "Wildcat Ridge è una roccia fangosa larga circa un metro in cui lo strumento SHERLOC ha rilevato molecole organiche e solfati. Accanto, l'arenaria di Skinner Ridge porta granuli arrivati da fuori cratere.",
+   "text": "Wildcat Ridge è una roccia fangosa in cui lo strumento SHERLOC ha rilevato segnali di molecole organiche e solfati: non è una prova di vita. Carote Hazeltop e Bearwallow qui, Swift Run e Skyland nell'arenaria di Skinner Ridge.",
    "photo": {
     "file": "photos/wildcat.jpg",
     "imageid": "ZL0_0464_0708123617_639EBY_N0260630ZCAM08484_1100LMJ",
@@ -178,6 +190,12 @@
     "w": 1024,
     "h": 746,
     "credit": "NASA/JPL-Caltech/ASU"
+   },
+   "meda": {
+    "sol": 484,
+    "min": -71.8,
+    "max": -20.5,
+    "source": "MEDA CAL_ATS, PDS Atmospheres Node; minimi e massimi estratti dal gruppo Mars Pathfinder (github.com/hritvikarora/marspineapple)"
    }
   },
   {
