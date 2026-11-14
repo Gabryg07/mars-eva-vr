@@ -15,12 +15,14 @@ export class Menu {
       ...row(294, 'helmet', [{ label: () => T('sì'), on: () => this.set.helmet, act: () => this.apply({ helmet: true }) }, { label: () => T('no'), on: () => !this.set.helmet, act: () => this.apply({ helmet: false }) }]),
       ...row(392, 'rover', [{ label: () => T('sì'), on: () => this.set.rover, act: () => this.apply({ rover: true }) }, { label: () => T('no'), on: () => !this.set.rover, act: () => this.apply({ rover: false }) }]),
       ...row(490, 'quick', [{ label: () => T('realistica'), on: () => !this.set.quick, act: () => this.apply({ quick: false }) }, { label: () => T('rapida'), on: () => this.set.quick, act: () => this.apply({ quick: true }) }]),
-      { x: 308, y: 600, w: 600, h: 96, key: 'start', primary: true, label: () => T('INIZIA LA MISSIONE'), on: () => false, act: () => app.start() },
+      { x: 58, y: 600, w: 540, h: 96, key: 'start', primary: true, label: () => T('INIZIA LA MISSIONE'), on: () => false, act: () => app.start() },
+      { x: 618, y: 600, w: 540, h: 96, key: 'data', primary: true, alt: true, label: () => T('SOLO DATI: SALA RICERCA'), on: () => false, act: () => app.explore() },
     ];
     this.draw();
   }
   apply(s) { Object.assign(this.set, s); const a = this.app; if (a.helmet) a.helmet.off = !this.set.helmet; if (a.rover) a.rover.off = !this.set.rover; a.player.walkSpeed = this.set.quick ? 2.6 : 1.3; this.draw(); }
-  show(on) { this.open = on; this.panel.mesh.visible = on; this.hover = null; this.dot.visible = false; if (on) this.draw(); }
+  show(on) { this.open = on; this.panel.mesh.visible = on; if (this.app.hud) this.app.hud.panel.mesh.visible = !on;   // the helmet readout would cover the buttons
+    this.hover = null; this.dot.visible = false; if (on) this.draw(); }
   draw() {
     this.panel.draw((c, W, H) => {
       rrect(c, 4, 4, W - 8, H - 8, 30); c.fillStyle = 'rgba(14,9,6,0.94)'; c.fill(); c.lineWidth = 4; c.strokeStyle = '#ffb37a'; c.stroke();
@@ -28,9 +30,9 @@ export class Menu {
       text(c, 'NASA Space Apps 2026', W - 56, 96, 22, '#ffb37a', 600, 'right');
       for (const [y, k] of [[196, 'LINGUA'], [294, 'CASCO'], [392, 'ROVER COMPAGNO'], [490, 'ANDATURA']]) text(c, T(k), 58, y + 48, 26, '#ffb37a', 700);
       for (const b of this.buttons) { const on = b.on(), hov = this.hover === b; rrect(c, b.x, b.y, b.w, b.h, 18);
-        c.fillStyle = b.primary ? (hov ? '#ffb37a' : '#ff9a52') : on ? '#7fe0ff' : hov ? 'rgba(127,224,255,0.3)' : 'rgba(255,255,255,0.1)'; c.fill(); if (hov) { c.lineWidth = 4; c.strokeStyle = '#fff'; c.stroke(); }
-        text(c, b.label(), b.x + b.w / 2, b.y + b.h / 2 + (b.primary ? 14 : 11), b.primary ? 38 : 30, b.primary || on ? '#1a0f0a' : '#fff', 700, 'center'); }
-      let y = wrap(c, T("Esci dall'airlock, segui la linea azzurra e rientra nella base per completare la missione.") + ' ' + T('A sinistra: il globo di Marte. Prendilo con il grilletto laterale, con due mani lo ingrandisci.'), 58, 742, W - 116, 22, 29, '#fff');
+        c.fillStyle = b.alt ? (hov ? '#b3efff' : '#7fe0ff') : b.primary ? (hov ? '#ffb37a' : '#ff9a52') : on ? '#7fe0ff' : hov ? 'rgba(127,224,255,0.3)' : 'rgba(255,255,255,0.1)'; c.fill(); if (hov) { c.lineWidth = 4; c.strokeStyle = '#fff'; c.stroke(); }
+        text(c, b.label(), b.x + b.w / 2, b.y + b.h / 2 + (b.primary ? 14 : 11), b.primary ? 34 : 30, b.primary || on ? '#1a0f0a' : '#fff', 700, 'center'); }
+      let y = wrap(c, T("Missione: esci dall'airlock, segui la linea azzurra e rientra nella base. Solo dati: entri nella sala con cartine, foto e documentazione per la ricerca.") + ' ' + T('A sinistra: il globo di Marte. Prendilo con il grilletto laterale, con due mani lo ingrandisci.'), 58, 742, W - 116, 22, 29, '#fff');
       text(c, T('Punta e premi il grilletto · al PC clic del mouse o Invio'), W / 2, H - 26, 20, '#d9c4b2', 400, 'center');
     });
   }

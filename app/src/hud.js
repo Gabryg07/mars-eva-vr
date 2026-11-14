@@ -12,7 +12,7 @@ export class Hud {
   update(dt) {
     this.acc += dt; if (this.acc < 0.2) return; this.acc = 0;
     const { mission, player, site } = this.app, pos = player.head(), st = mission.state(pos), lim = site.mission.slopeLimitsDeg;
-    const slope = this.app.slope(pos.x, pos.z), k = slope < lim[0] ? 0 : slope < lim[1] ? 1 : slope < lim[2] ? 2 : 3, tgt = mission.target;
+    const slope = this.app.habitat.indoors(pos.x, pos.z) ? 0 : this.app.slope(pos.x, pos.z), k = slope < lim[0] ? 0 : slope < lim[1] ? 1 : slope < lim[2] ? 2 : 3, tgt = mission.target;
     this.panel.draw((c, W, H) => {
       rrect(c, 4, 4, W - 8, H - 8, 26); c.fillStyle = 'rgba(14,9,6,0.62)'; c.fill(); c.lineWidth = 3; c.strokeStyle = st.alert ? '#ff3b3b' : 'rgba(255,170,110,0.75)'; c.stroke();
       // clock
@@ -26,8 +26,9 @@ export class Hud {
       text(c, T('RADIAZIONI'), x, 158, 20, '#ffb37a', 600); text(c, `${num(mission.dose, 1)} µSv`, x + bw, 160, 26, '#fff', 700, 'right');
       text(c, T`percorsi ${fmtDist(mission.dist)} · salita ${Math.round(mission.climb)} m`, x, 190, 22, '#d9c4b2');
       // next stop
-      const tx = 680; text(c, T(mission.done ? 'USCITA COMPLETATA' : this.app.started ? 'PROSSIMA TAPPA' : 'IN ATTESA'), tx, 46, 20, '#ffb37a', 600);
-      if (!this.app.started) { text(c, T('Scegli le impostazioni'), tx, 96, 28, '#fff', 600); text(c, T('e avvia la missione.'), tx, 132, 28, '#fff', 600); }
+      const tx = 680; text(c, T(mission.done ? 'USCITA COMPLETATA' : this.app.started ? 'PROSSIMA TAPPA' : this.app.dataMode ? 'SALA DATI' : 'IN ATTESA'), tx, 46, 20, '#ffb37a', 600);
+      if (!this.app.started && this.app.dataMode) { text(c, T('Nessuna missione attiva.'), tx, 96, 28, '#fff', 600); text(c, T('Y: torna al menu'), tx, 132, 28, '#d9c4b2', 600); }
+      else if (!this.app.started) { text(c, T('Scegli le impostazioni'), tx, 96, 28, '#fff', 600); text(c, T('e avvia la missione.'), tx, 132, 28, '#fff', 600); }
       else if (tgt) { const dx = tgt.x - pos.x, dz = -tgt.y - pos.z, d = Math.hypot(dx, dz), rel = Math.atan2(dx, -dz) + player.headYaw();
         text(c, tgt.name, tx, 96, 40, '#fff', 700); text(c, fmtDist(d), tx, 150, 46, '#7fe0ff', 700);
         c.save(); c.translate(W - 82, 140); c.rotate(rel); c.beginPath(); c.moveTo(0, -44); c.lineTo(30, 30); c.lineTo(0, 14); c.lineTo(-30, 30); c.closePath(); c.fillStyle = '#7fe0ff'; c.fill(); c.restore();

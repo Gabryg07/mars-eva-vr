@@ -65,6 +65,8 @@ const EN = {
   'Riserva O₂ {}%': 'O₂ reserve {}%', 'Segui la linea azzurra': 'Follow the cyan line',
   // menu
   "Prova generale di un'uscita a piedi su Marte": 'Dress rehearsal of a walk on Mars', 'LINGUA': 'LANGUAGE', 'CASCO': 'HELMET', 'ROVER COMPAGNO': 'COMPANION ROVER', 'ANDATURA': 'WALKING PACE', 'sì': 'on', 'no': 'off',
+  'SOLO DATI: SALA RICERCA': 'DATA ONLY: RESEARCH ROOM', 'SALA DATI': 'RESEARCH ROOM', 'Nessuna missione attiva.': 'No mission running.', 'Y: torna al menu': 'Y: back to the menu',
+  "Missione: esci dall'airlock, segui la linea azzurra e rientra nella base. Solo dati: entri nella sala con cartine, foto e documentazione per la ricerca.": 'Mission: leave through the airlock, follow the cyan line and come back inside the base. Data only: walk into the room with maps, photos and documentation for research.',
   'realistica': 'realistic', 'rapida': 'quick', 'INIZIA LA MISSIONE': 'START THE MISSION', 'Punta e premi il grilletto · al PC clic del mouse o Invio': 'Point and pull the trigger · on PC click or press Enter',
   'A sinistra: il globo di Marte. Prendilo con il grilletto laterale, con due mani lo ingrandisci.': 'On your left: the Mars globe. Grab it with the grip button, use both hands to resize it.',
   'Esci dall\'airlock, segui la linea azzurra e rientra nella base per completare la missione.': 'Leave through the airlock, follow the cyan line and come back inside the base to complete the mission.',
