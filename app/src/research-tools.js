@@ -98,7 +98,7 @@ export class Calendar {
 }
 
 // ---------------------------------------------------------------- terrain model
-const LAYERS = [{ f: 'site_ortho.jpg', n: { it: 'Immagine', en: 'Image' } }, { f: 'site_slope.jpg', n: { it: 'Pendenze', en: 'Slopes' } }, { f: 'site_minerals.jpg', n: { it: 'Minerali', en: 'Minerals' } }, { f: 'site_thermal.jpg', n: { it: 'Infrarosso', en: 'Infrared' }, crop: 0.25 }];
+const LAYERS = [{ f: 'site_ortho.jpg', n: { it: 'Immagine', en: 'Image' } }, { f: 'site_slope.jpg', n: { it: 'Pendenze', en: 'Slopes' } }, { f: 'site_minerals.jpg', n: { it: 'Minerali', en: 'Minerals' } }, { f: 'model_thermal.jpg', n: { it: 'Infrarosso', en: 'Infrared' } }];
 const MIN_COL = [[255, 70, 50, { it: 'olivina', en: 'olivine' }], [70, 230, 90, { it: 'argille Fe/Mg', en: 'Fe/Mg clays' }], [70, 140, 255, { it: 'carbonati', en: 'carbonates' }]];
 export class Plastico {
   constructor(room, resBase, siteBase, cx, fy, cz, faceYaw) {
@@ -120,8 +120,8 @@ export class Plastico {
     room.onData = () => { for (const s of room.data.samples) { const i = room.cal.wpAt(s.sol); if (i == null) continue; const w = room.cal.wps[i]; if (Math.abs(w[1]) > half || Math.abs(w[2]) > half) continue; const p = pin(0xffa040, 0.1); this.place(p, w[1], w[2]); this.samplePins.push(p); }
       this.setRover(room.cal.position()); for (const b of room.boards) if (b.needsData) room.drawBoard(b); };
     // console at the table edge, facing whoever comes in from the door
-    this.con = new Panel(1.5, 0.7, 600, { depthTest: true }); const m = this.con.mesh; m.rotation.order = 'YXZ'; m.rotation.set(-0.55, faceYaw, 0);
-    m.position.set(Math.sin(faceYaw) * 1.3, 1.08, Math.cos(faceYaw) * 1.3); g.add(m);
+    this.con = new Panel(1.5, 0.86, 600, { depthTest: true }); const m = this.con.mesh; m.rotation.order = 'YXZ'; m.rotation.set(-0.55, faceYaw, 0);
+    m.position.set(Math.sin(faceYaw) * 1.3, 1.12, Math.cos(faceYaw) * 1.3); g.add(m);
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.9, 10), new THREE.MeshBasicMaterial({ color: 0x555b62 })); post.position.set(Math.sin(faceYaw) * 1.36, 0.45, Math.cos(faceYaw) * 1.36); g.add(post);
     // mineral and night-IR maps, read pixel by pixel for the query
     this.px = {}; for (const [k, f, hw] of [['min', 'minerals.png', app.site.overlays?.minerals?.half], ['th', 'thermal.png', app.site.overlays?.thermal?.half]]) { if (!hw) continue; const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const x = c.getContext('2d'); x.drawImage(im, 0, 0); this.px[k] = { d: x.getImageData(0, 0, im.width, im.height).data, w: im.width, h: im.height, half: hw }; }; im.src = siteBase + f; }
@@ -143,14 +143,30 @@ export class Plastico {
   conHover(h) { const b = this.conHit(h), i = b ? b.i : null; if (i !== this.hov) { this.hov = i; this.redraw(); } }
   conClick(h) { const b = this.conHit(h); if (!b) return; this.layer = b.i; this.mesh.material.map = this.tex[b.i]; this.mesh.material.needsUpdate = true; this.redraw(); }
   update() {}
+  legend(c, W, Hh, lim) {   // colour key for the layer on the model, plus the pins (always the same)
+    const y0 = Hh - 112; c.fillStyle = 'rgba(255,255,255,0.12)'; c.fillRect(24, y0 - 34, W - 48, 2);
+    text(c, L({ it: 'LEGENDA', en: 'KEY' }), 24, y0, 17, '#7fe0ff', 700); let x = 120;
+    const sw = (col, lab) => { c.fillStyle = col; rrect(c, x, y0 - 16, 22, 18, 4); c.fill(); text(c, lab, x + 30, y0, 18, '#fff', 500); x += 40 + c.measureText(lab).width + 18; };
+    const k = this.layer;
+    if (k === 0) { text(c, L({ it: 'Immagine HiRISE/CTX in scala di grigi, senza colori aggiunti', en: 'HiRISE/CTX image in greyscale, no added colours' }), x, y0, 18, '#d9c4b2'); }
+    if (k === 1) { const [a, b, d] = lim; [[`< ${a}°`, 0], [`${a}–${b}°`, 1], [`${b}–${d}°`, 2], [`> ${d}°`, 3]].forEach(([l, i]) => sw(SLOPE_COL[i], l + ' ' + L([{ it: 'agevole', en: 'easy' }, { it: 'impegnativa', en: 'demanding' }, { it: 'critica', en: 'critical' }, { it: 'vietata', en: 'no-go' }][i]))); }
+    if (k === 2) { for (const [r, g, b, n] of MIN_COL) sw(`rgb(${r},${g},${b})`, L(n)); text(c, L({ it: 'scuro: nessun segnale', en: 'dark: no signal' }), x, y0, 18, '#d9c4b2'); }
+    if (k === 3) { const gx = 120, gw = 400, gr = c.createLinearGradient(gx, 0, gx + gw, 0); [[0, '#0a0842'], [0.3, '#8b236f'], [0.6, '#e36238'], [1, '#fffcc3']].forEach(([o, col]) => gr.addColorStop(o, col)); c.fillStyle = gr; rrect(c, gx, y0 - 16, gw, 18, 4); c.fill();
+      text(c, L({ it: 'freddo: sabbia, polvere', en: 'cold: sand, dust' }), gx, y0 + 24, 15, '#d9c4b2'); text(c, L({ it: 'caldo: roccia compatta', en: 'warm: solid rock' }), gx + gw, y0 + 24, 15, '#d9c4b2', 400, 'right'); x = gx + gw + 24; text(c, L({ it: 'THEMIS di notte: chi trattiene il calore è roccia', en: 'THEMIS at night: what holds heat is rock' }), x, y0, 17, '#d9c4b2'); }
+    x = 120; const y1 = y0 + 52; text(c, L({ it: 'PUNTINE', en: 'PINS' }), 24, y1, 17, '#7fe0ff', 700);
+    const dot = (col, lab) => { c.fillStyle = col; c.beginPath(); c.arc(x + 9, y1 - 6, 9, 0, 7); c.fill(); text(c, lab, x + 26, y1, 18, '#fff', 500); x += 26 + c.measureText(lab).width + 26; };
+    c.fillStyle = '#33e6ff'; c.fillRect(x, y1 - 9, 26, 5); text(c, L({ it: 'percorso EVA', en: 'EVA route' }), x + 34, y1, 18, '#fff', 500); x += 34 + c.measureText(L({ it: 'percorso EVA', en: 'EVA route' })).width + 24;
+    dot('#ffffff', L({ it: 'tappe', en: 'stops' })); dot('#ffd166', 'base'); dot('#ffa040', L({ it: 'campioni', en: 'samples' })); dot('#33e6ff', L({ it: 'rover nel sol', en: 'rover on sol' })); dot('#ff3b3b', L({ it: 'punto letto', en: 'queried point' }));
+  }
   redraw() {
     const q = this.q, lim = this.app.site.mission.slopeLimitsDeg;
     this.con.draw((c, W, Hh) => {
       this.room.frame(c, W, Hh, '#7fe0ff'); text(c, L({ it: 'PLASTICO DEL FRONTE DEL DELTA', en: 'DELTA FRONT TERRAIN MODEL' }), 24, 52, 28, '#7fe0ff', 700);
       text(c, L({ it: `7,2 km di lato · rilievo ×${this.EX} · nord come sulla mappa`, en: `7.2 km across · relief ×${this.EX} · north as on the map` }), W - 24, 52, 15, '#d9c4b2', 500, 'right');
       for (const b of this.btns()) { const on = b.i === this.layer, hov = b.i === this.hov; rrect(c, b.x, b.y, b.w, b.h, 14); c.fillStyle = on ? '#7fe0ff' : hov ? 'rgba(127,224,255,0.35)' : 'rgba(255,255,255,0.1)'; c.fill(); text(c, L(LAYERS[b.i].n), b.x + b.w / 2, b.y + 42, 25, on ? '#1a0f0a' : '#fff', 700, 'center'); }
+      this.legend(c, W, Hh, lim);
       let y = 200;
-      if (!q) { y = wrap(c, L({ it: 'Punta un punto del plastico e premi il grilletto (al PC: clic) per leggere coordinate, quota, pendenza, minerali e calore notturno in quel punto. Puntine: bianche le tappe, gialla la base, arancioni i campioni del rover, azzurra la posizione del rover nel sol scelto sul calendario.', en: 'Point at the model and pull the trigger (on PC: click) to read coordinates, elevation, slope, minerals and night-time heat at that spot. Pins: white stops, yellow base, orange rover samples, cyan the rover on the sol chosen on the calendar.' }), 24, y, W - 48, 23, 31, '#fff'); return; }
+      if (!q) { y = wrap(c, L({ it: 'Punta un punto del plastico e premi il grilletto (al PC: clic) per leggere coordinate, quota, pendenza, minerali e calore notturno in quel punto.', en: 'Point at the model and pull the trigger (on PC: click) to read coordinates, elevation, slope, minerals and night-time heat at that spot.' }), 24, y, W - 48, 23, 31, '#fff'); return; }
       const row = (a, b, col = '#fff') => { text(c, a, 24, y, 22, '#d9c4b2'); text(c, b, 330, y, 24, col, 600); y += 34; };
       row(L({ it: 'Coordinate', en: 'Coordinates' }), `${num(q.la, 5)}° N · ${num(q.lo, 5)}° E`);
       row(L({ it: 'Quota (MOLA)', en: 'Elevation (MOLA)' }), `${Math.round(q.elev)} m`);
