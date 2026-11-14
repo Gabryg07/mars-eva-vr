@@ -15,6 +15,11 @@
   #msg{font-size:13px;opacity:.7;min-height:1.2em}
   #help{position:fixed;left:12px;bottom:12px;font-size:12px;line-height:1.5;background:#0008;padding:8px 10px;border-radius:8px;max-width:340px;pointer-events:none}
   #help b{color:#ffb37a}
+  #legend{position:fixed;right:12px;top:12px;font-size:13px;line-height:1.5;background:#0009;padding:10px 12px;border-radius:8px;max-width:260px;pointer-events:none;display:flex;flex-direction:column}
+  #legend:empty{display:none}
+  #legend b{font-size:15px}
+  #legend small{opacity:.7;margin-bottom:4px}
+  #legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:8px}
 </style>
 </head>
 <body>
@@ -25,6 +30,7 @@
   <div id="msg">Caricamento dei dati orbitali…</div>
 </div>
 <div id="help"></div>
+<div id="legend"></div>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>
