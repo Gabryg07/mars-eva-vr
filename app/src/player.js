@@ -25,7 +25,7 @@ export class Player {
     this.marker = new THREE.Mesh(new THREE.RingGeometry(0.35, 0.5, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x7fe0ff, transparent: true, opacity: 0.95, depthTest: false, side: THREE.DoubleSide }));
     this.marker.visible = false; this.marker.renderOrder = 51; scene.add(this.marker);
     // desktop input
-    dom.addEventListener('click', () => { if (!renderer.xr.isPresenting && document.pointerLockElement !== dom) dom.requestPointerLock?.(); });
+    dom.addEventListener('click', () => { if (this.onClick?.()) return; if (!renderer.xr.isPresenting && document.pointerLockElement !== dom) dom.requestPointerLock?.(); });
     document.addEventListener('mousemove', e => { if (document.pointerLockElement === dom) { this.yaw -= e.movementX * 0.0022; this.pitch = Math.max(-1.5, Math.min(1.5, this.pitch - e.movementY * 0.0022)); } });
     addEventListener('keydown', e => { this.keys[e.code] = true; }); addEventListener('keyup', e => { this.keys[e.code] = false; });
   }
@@ -70,7 +70,7 @@ export class Player {
       }
     }
     if (mx || mz) {
-      const yaw = this.headYaw(), sp = (this.lift ? (fast ? 400 : 120) : fast ? this.fastSpeed : this.walkSpeed) * dt, len = Math.max(1, Math.hypot(mx, mz));
+      const yaw = this.headYaw(), sp = (this.lift ? (fast ? 400 : 120) : (fast ? this.fastSpeed : this.walkSpeed) * (this.pace = this.speedFactor ? this.speedFactor(from.x, from.z) : 1)) * dt, len = Math.max(1, Math.hypot(mx, mz));
       const dx = (Math.cos(yaw) * mx - Math.sin(yaw) * mz) * sp / len, dz = (-Math.sin(yaw) * mx - Math.cos(yaw) * mz) * sp / len;
       const nx = from.x + dx, nz = from.z + dz;
       if (!this.canStandAt || this.canStandAt(nx, nz)) { this.rig.position.x += dx; this.rig.position.z += dz; }
@@ -91,7 +91,7 @@ export class Player {
       if (hit) p.setXYZ(i, hit.x, hit.y + 0.03, hit.z); else p.setXYZ(i, x, y, z);
     }
     p.needsUpdate = true; this.arc.visible = true;
-    const ok = hit && (!this.canStandAt || this.canStandAt(hit.x, hit.z));
+    const ok = hit && (!this.canStandAt || this.canStandAt(hit.x, hit.z)) && (!this.canTeleportTo || this.canTeleportTo(hit.x, hit.z));
     this.target = ok ? hit : null; this.marker.visible = !!hit;
     if (hit) { this.marker.position.set(hit.x, hit.y + 0.05, hit.z); const col = ok ? 0x7fe0ff : 0xff4040; this.marker.material.color.setHex(col); this.arc.material.color.setHex(col); }
   }
