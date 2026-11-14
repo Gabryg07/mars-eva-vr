@@ -20,7 +20,7 @@ export class Wrist {
       else { if (L.note) y = wrap(c, L.note, 26, y + 2, W - 52, 21, 27, '#d9c4b2'); if (track) text(c, 'Linea bianca: traccia reale di Perseverance', 26, y, 21, '#fff'); }
       const by = H - 78; c.fillStyle = 'rgba(255,255,255,0.14)'; c.fillRect(22, by - 30, W - 44, 2);
       if (w) text(c, `Meteo MEDA sol ${w.sol}: ${Math.round(w.min_temp)} / ${Math.round(w.max_temp)} °C · ${Math.round(w.pressure)} Pa`, 26, by, 21, '#7fe0ff', 600);
-      text(c, 'A livello · B traccia rover · X fonti dei dati · Y ricomincia', 26, by + 32, 20, '#d9c4b2'); text(c, 'stick sx cammina · stick dx teletrasporto e rotazione', 26, by + 58, 20, '#d9c4b2');
+      text(c, 'A livello · B traccia rover · X fonti dei dati · Y ricomincia', 26, by + 32, 20, '#d9c4b2'); text(c, 'grilletto dx vista dall\'alto · stick dx teletrasporto', 26, by + 58, 20, '#d9c4b2');
     });
     if (this.dom) this.dom.innerHTML = `<b>${L.name}</b><small>${L.src}</small>` + L.legend.filter(l => l[1]).map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join('') +
       (track ? '<span><i style="background:#fff"></i>traccia reale di Perseverance</span>' : '') + '<span><i style="background:#33e6ff"></i>percorso sicuro</span>';

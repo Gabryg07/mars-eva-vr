@@ -11,7 +11,7 @@ export class Player {
     this.yaw = 0; this.pitch = 0; this.keys = {}; this.walkSpeed = 1.3; this.fastSpeed = 14; this.followGround = true;
     this.onButton = null; this._btn = {}; this.onMove = null;        // (fromVec3, toVec3, kind) -> void, for mission accounting
     this.canStandAt = null;    // (x,z) -> bool
-    this.hands = {}; this.snapLatch = false; this.aiming = false; this.target = null;
+    this.lift = 0; this.hands = {}; this.snapLatch = false; this.aiming = false; this.target = null;
     for (let i = 0; i < 2; i++) {
       const c = renderer.xr.getController(i); this.rig.add(c);
       c.addEventListener('connected', e => { c.userData.hand = e.data.handedness; c.userData.src = e.data; this.hands[e.data.handedness] = c; this._ray(c); });
@@ -42,6 +42,12 @@ export class Player {
     const y = this.ground && this.ground(x, z); if (y != null && this.followGround) this.rig.position.y = y;
     this.rig.updateMatrixWorld(true);
   }
+  // planning view: rise straight up to look at the whole site, then come back down to the same spot (no free travel)
+  toggleOverview(h = 600) {
+    if (!this.lift) { this._saved = this.head(new THREE.Vector3()); this.lift = h; this.rig.position.y += h; this.aiming = false; this.arc.visible = this.marker.visible = false; this.target = null; }
+    else { this.lift = 0; this.placeAt(this._saved.x, this._saved.z); const y = this.ground(this._saved.x, this._saved.z); if (y != null) this.rig.position.y = y; }
+    this.rig.updateMatrixWorld(true); this.onOverview?.(this.lift > 0);
+  }
   _turn(a) { const before = this.head(new THREE.Vector3()); this.rig.rotation.y += a; this.rig.updateMatrixWorld(true); const after = this.head(v2); this.rig.position.x += before.x - after.x; this.rig.position.z += before.z - after.z; }
   _pad(hand) { const c = this.hands[hand]; const gp = c && c.userData.src && c.userData.src.gamepad; if (!gp) return null;
     const a = gp.axes; return { x: a.length >= 4 ? a[2] : a[0] || 0, y: a.length >= 4 ? a[3] : a[1] || 0, trigger: gp.buttons[0]?.pressed, grip: gp.buttons[1]?.pressed, a: gp.buttons[4]?.pressed, b: gp.buttons[5]?.pressed, c }; }
@@ -53,25 +59,25 @@ export class Player {
       const k = this.keys; mz = (k.KeyW || k.ArrowUp ? 1 : 0) - (k.KeyS || k.ArrowDown ? 1 : 0); mx = (k.KeyD || k.ArrowRight ? 1 : 0) - (k.KeyA || k.ArrowLeft ? 1 : 0); fast = k.ShiftLeft || k.ShiftRight;
     } else {
       const L = this._pad('left'), Rr = this._pad('right');
-      for (const [hand, pad] of [['left', L], ['right', Rr]]) if (pad) for (const [i, on] of [[4, pad.a], [5, pad.b]]) { const k = hand + i; if (on && !this._btn[k]) this.onButton?.(hand, i); this._btn[k] = !!on; }
+      for (const [hand, pad] of [['left', L], ['right', Rr]]) if (pad) for (const [i, on] of [[0, pad.trigger], [4, pad.a], [5, pad.b]]) { const k = hand + i; if (on && !this._btn[k]) this.onButton?.(hand, i); this._btn[k] = !!on; }
       if (L) { if (Math.hypot(L.x, L.y) > 0.15) { mx = L.x; mz = -L.y; } fast = L.grip; }
       if (Rr) {
         if (Math.abs(Rr.x) > 0.65 && Math.abs(Rr.y) < 0.5) { if (!this.snapLatch) { this._turn(-Math.sign(Rr.x) * Math.PI / 6); this.snapLatch = true; } } else if (Math.abs(Rr.x) < 0.3) this.snapLatch = false;
-        const aim = Rr.y < -0.6 && Math.abs(Rr.x) < 0.6;
+        const aim = !this.lift && Rr.y < -0.6 && Math.abs(Rr.x) < 0.6;
         if (aim) { this.aiming = true; this._aim(Rr.c); }
         else if (this.aiming) { this.aiming = false; this.arc.visible = this.marker.visible = false;
           if (this.target) { const t = this.target; this.placeAt(t.x, t.z); this.onMove?.(from, this.head(new THREE.Vector3()), 'teleport'); this.target = null; return; } }
       }
     }
     if (mx || mz) {
-      const yaw = this.headYaw(), sp = (fast ? this.fastSpeed : this.walkSpeed) * dt, len = Math.max(1, Math.hypot(mx, mz));
+      const yaw = this.headYaw(), sp = (this.lift ? (fast ? 400 : 120) : fast ? this.fastSpeed : this.walkSpeed) * dt, len = Math.max(1, Math.hypot(mx, mz));
       const dx = (Math.cos(yaw) * mx - Math.sin(yaw) * mz) * sp / len, dz = (-Math.sin(yaw) * mx - Math.cos(yaw) * mz) * sp / len;
       const nx = from.x + dx, nz = from.z + dz;
       if (!this.canStandAt || this.canStandAt(nx, nz)) { this.rig.position.x += dx; this.rig.position.z += dz; }
     }
-    if (this.followGround && this.ground) { const h = this.head(v1); const y = this.ground(h.x, h.z); if (y != null) this.rig.position.y += (y - this.rig.position.y) * Math.min(1, dt * 12); }
+    if (this.followGround && this.ground && !this.lift) { const h = this.head(v1); const y = this.ground(h.x, h.z); if (y != null) this.rig.position.y += (y - this.rig.position.y) * Math.min(1, dt * 12); }
     this.rig.updateMatrixWorld(true);
-    if (mx || mz) this.onMove?.(from, this.head(new THREE.Vector3()), fast ? 'fast' : 'walk');
+    if ((mx || mz) && !this.lift) this.onMove?.(from, this.head(new THREE.Vector3()), fast ? 'fast' : 'walk');
   }
   _aim(c) {
     c.getWorldPosition(v1); c.getWorldQuaternion(q1); const dir = v2.set(0, 0, -1).applyQuaternion(q1); const speed = 15;
