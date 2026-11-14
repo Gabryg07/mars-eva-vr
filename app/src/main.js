@@ -58,9 +58,9 @@ const sky = makeSky(); scene.add(sky);
 
 // data layers the astronaut can switch between
 app.LAYERS = [
-  { name: 'Immagine reale', src: 'MRO HiRISE, 25 cm/pixel', legend: [] },
-  { name: 'Pendenza e pericoli', src: 'Derivata dal modello HiRISE a 1 m', legend: [['#1abf59', 'sotto 10°: agevole'], ['#fad926', '10–20°: impegnativa'], ['#ff800d', '20–30°: critica'], ['#f2141a', 'oltre 30°: vietata']] },
-  { name: 'Quota', src: 'Modello del terreno HiRISE, isoipse ogni 5 m', legend: [['#30123b', 'più basso'], ['#28bbec', ''], ['#a2fc3c', ''], ['#fb8022', ''], ['#7a0403', 'più alto']] },
+  { name: 'Immagine satellitare', src: 'MRO HiRISE, 25 cm/pixel', legend: [] },
+  { name: 'Pendenze e ostacoli', src: 'Derivata dal modello HiRISE a 1 m', legend: [['#1abf59', 'sotto 10°: agevole'], ['#fad926', '10–20°: impegnativa'], ['#ff800d', '20–30°: critica'], ['#f2141a', 'oltre 30°: vietata']] },
+  { name: 'Topografia', src: 'Modello HiRISE agganciato a MOLA, isoipse ogni 5 m', legend: [['#30123b', 'più basso'], ['#28bbec', ''], ['#a2fc3c', ''], ['#fb8022', ''], ['#7a0403', 'più alto']] },
 ];
 app.setLayer = i => { app.layer = (i + app.LAYERS.length) % app.LAYERS.length; shared.uLayer.value = app.layer; const o = app.LAYERS[app.layer].overlay;
   shared.uOverlayOn.value = o ? 1 : 0; if (o) { shared.uOverlay.value = o.tex; shared.uOverlayHalf.value = o.half; } app.onLayer?.(); };
@@ -77,9 +77,9 @@ async function boot() {
     const [h, slope, ortho] = await Promise.all([heights(ring), grayMosaic([`${base}${ring.name}_slope.png`], 1, false), grayMosaic(urls, T)]); return { ring, heights: h, slope, ortho };
   })]);
   const ov = site.overlays || {};
-  if (ov.minerals) app.LAYERS.push({ name: 'Minerali', src: 'Spettrometro MRO CRISM, 18 m/pixel', overlay: { tex: await overlayTex(base + ov.minerals.file), half: ov.minerals.half },
+  if (ov.minerals) app.LAYERS.push({ name: 'Geologia: minerali', src: 'Spettrometro MRO CRISM, 18 m/pixel', overlay: { tex: await overlayTex(base + ov.minerals.file), half: ov.minerals.half },
     legend: ov.minerals.channels.map(c => [c.color, c.label]), note: 'Dove campionare: le argille e i carbonati si formano in acqua.' });
-  if (ov.thermal) app.LAYERS.push({ name: 'Infrarosso notturno', src: 'Mars Odyssey THEMIS, 100 m/pixel', overlay: { tex: await overlayTex(base + ov.thermal.file), half: ov.thermal.half },
+  if (ov.thermal) app.LAYERS.push({ name: 'Temperatura: infrarosso', src: 'Mars Odyssey THEMIS notturno, 100 m/pixel', overlay: { tex: await overlayTex(base + ov.thermal.file), half: ov.thermal.half },
     legend: [['#fffabe', 'caldo di notte: roccia compatta'], ['#e1503c', 'intermedio'], ['#2a0f55', 'freddo di notte: sabbia e polvere']], note: 'Dove si cammina bene: la sabbia sciolta rallenta e affatica.' });
   msg.textContent = 'Costruzione del terreno…'; shared.uNav.value = nav;
   const inner = loaded[0]; const n = inner.ring.n; const h0 = app.h0 = inner.heights[(n >> 1) * n + (n >> 1)];
