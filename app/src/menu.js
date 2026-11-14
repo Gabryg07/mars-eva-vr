@@ -20,7 +20,7 @@ export class Menu {
     ];
     this.draw();
   }
-  apply(s) { Object.assign(this.set, s); const a = this.app; if (a.helmet) a.helmet.off = !this.set.helmet; if (a.rover) a.rover.off = !this.set.rover; a.player.walkSpeed = this.set.quick ? 2.6 : 1.3; this.draw(); }
+  apply(s) { Object.assign(this.set, s); const a = this.app; if (a.helmet) a.helmet.off = !this.set.helmet; if (a.rover) a.rover.off = !this.set.rover; a.player.walkSpeed = this.set.quick ? 3.0 : 1.6; this.draw(); }
   show(on) { this.open = on; this.panel.mesh.visible = on; if (this.app.hud) this.app.hud.panel.mesh.visible = !on;   // the helmet readout would cover the buttons
     this.hover = null; this.dot.visible = false; if (on) this.draw(); }
   draw() {

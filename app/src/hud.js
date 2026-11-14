@@ -10,6 +10,8 @@ export class Hud {
     m.position.set(0, -0.36, -1.25); m.rotation.x = -0.27; m.renderOrder = 200; app.camera.add(m);
   }
   update(dt) {
+    const xr = this.app.renderer.xr.isPresenting, m = this.panel.mesh; if (xr !== this._xr) { this._xr = xr;   // in the headset: a small readout low on the left, out of the way
+      if (xr) { m.scale.setScalar(0.42); m.position.set(-0.3, -0.33, -0.95); m.rotation.set(-0.45, 0.32, 0); } else { m.scale.setScalar(1); m.position.set(0, -0.36, -1.25); m.rotation.set(-0.27, 0, 0); } }
     this.acc += dt; if (this.acc < 0.2) return; this.acc = 0;
     const { mission, player, site } = this.app, pos = player.head(), st = mission.state(pos), lim = site.mission.slopeLimitsDeg;
     const slope = this.app.habitat.indoors(pos.x, pos.z) ? 0 : this.app.slope(pos.x, pos.z), k = slope < lim[0] ? 0 : slope < lim[1] ? 1 : slope < lim[2] ? 2 : 3, tgt = mission.target;

@@ -116,6 +116,7 @@ export class ResearchRoom {
     this.zoom = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ transparent: true, depthTest: false, depthWrite: false, toneMapped: false })); this.zoom.renderOrder = 400; this.zoom.visible = false; this.zoom.position.z = -1.05; app.camera.add(this.zoom);
     this.dot = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), new THREE.MeshBasicMaterial({ color: 0x7fe0ff, depthTest: false })); this.dot.renderOrder = 401; this.dot.visible = false; app.scene.add(this.dot);
     this.ray = new THREE.Raycaster(); this.downloads();
+    app.renderer.domElement.addEventListener('mousedown', () => { this.mouseDown = true; if (this.near()) this.grab('mouse'); }); addEventListener('mouseup', () => { this.mouseDown = false; });
     addEventListener('keydown', e => { if (!this.near()) return; if (e.code === 'BracketLeft') this.cal.step(e.shiftKey ? -10 : -1); if (e.code === 'BracketRight') this.cal.step(e.shiftKey ? 10 : 1); if (e.code === 'Escape' && this.zoom.visible) this.zoom.visible = false; });
     this.redraw();
   }
@@ -128,17 +129,24 @@ export class ResearchRoom {
   }
   update(dt, cam) {
     const { app } = this, xr = app.renderer.xr.isPresenting, inside = this.near();
-    this.dl.style.display = inside && !xr ? 'block' : 'none'; if (app.hud && !app.menu?.open && inside !== this._in) { this._in = inside; app.hud.panel.mesh.visible = !inside || xr; }   // on a PC the helmet readout would cover the boards this.cal.update(dt); this.plastico.update(dt, cam);
+    this.dl.style.display = inside && !xr ? 'block' : 'none'; if (app.hud && !app.menu?.open && inside !== this._in) { this._in = inside; app.hud.panel.mesh.visible = !inside || xr; }   // on a PC the helmet readout would cover the boards
+    this.cal.update(dt); this.plastico.update(dt, cam);
     this.hover = null; this.dot.visible = false; if (!inside || app.menu?.open) return;
     const cast = (o, d, hand) => { this.ray.set(o, d); const hits = this.ray.intersectObjects(this.targets.map(t => t.mesh), false); const h = hits[0]; if (!h || h.distance > 9) return null; return { t: this.targets.find(t => t.mesh === h.object), h, hand }; };
     const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(), q = new THREE.Quaternion();
     if (xr) { for (const hand of ['right', 'left']) { const c = app.player.hands[hand]; if (!c) continue; c.getWorldPosition(v1); c.getWorldQuaternion(q); const r = cast(v1, v2.set(0, 0, -1).applyQuaternion(q), hand); const line = c.getObjectByName('ray'); if (line) line.scale.z = r ? r.h.distance : 0.25; if (r && !this.hover) this.hover = r; } }
     else { const m = document.pointerLockElement ? new THREE.Vector2() : app.menu.mouse; this.ray.setFromCamera(m, app.camera); this.hover = cast(this.ray.ray.origin.clone(), this.ray.ray.direction.clone(), 'mouse'); }
     if (this.hover) { this.dot.position.copy(this.hover.h.point); this.dot.visible = !this.zoom.visible; this.hover.t.move?.(this.hover.h); }
+    // dragging the calendar's timeline handle: follows the pointer while the trigger (or mouse button) stays down
+    if (this.drag) { const held = this.drag === 'mouse' ? this.mouseDown : app.player._pad(this.drag)?.trigger; if (!held) this.drag = null;
+      else { let h = null; if (this.drag === 'mouse') { this.ray.setFromCamera(document.pointerLockElement ? new THREE.Vector2() : app.menu.mouse, app.camera); h = this.ray.intersectObject(this.cal.pnl.mesh, false)[0]; }
+        else { const c = app.player.hands[this.drag]; c.getWorldPosition(v1); c.getWorldQuaternion(q); this.ray.set(v1, v2.set(0, 0, -1).applyQuaternion(q)); h = this.ray.intersectObject(this.cal.pnl.mesh, false)[0]; }
+        if (h) { const [x] = this.cal.px(h), tl = this.cal.layout.tl; this.cal.playing = false; this.cal.set(Math.max(0, Math.min(1, (x - tl[0]) / (tl[2] - tl[0]))) * this.cal.max); } } }
   }
+  grab(hand) { const r = this.hover; if (!r || r.t.mesh !== this.cal.pnl.mesh || this.zoom.visible) return false; const id = this.cal.hit(r.h); if (!id || !id.startsWith('tl:')) return false; this.drag = hand; return true; }
   click() {
     if (this.zoom.visible) { this.zoom.visible = false; return true; }
-    if (!this.hover) return false; this.hover.t.click(this.hover.h); return true;
+    if (!this.hover) return false; if (this.hover.hand !== 'mouse') this.grab(this.hover.hand); this.hover.t.click(this.hover.h); return true;
   }
   redraw() {
     this.sign.draw((c, W, Hh) => { rrect(c, 2, 2, W - 4, Hh - 4, 16); c.fillStyle = '#1b1714'; c.fill(); text(c, L({ it: 'SALA DATI →', en: 'RESEARCH ROOM →' }), W / 2, Hh * 0.68, 64, '#7fe0ff', 700, 'center'); });

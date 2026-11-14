@@ -120,9 +120,9 @@ export class Plastico {
     room.onData = () => { for (const s of room.data.samples) { const i = room.cal.wpAt(s.sol); if (i == null) continue; const w = room.cal.wps[i]; if (Math.abs(w[1]) > half || Math.abs(w[2]) > half) continue; const p = pin(0xffa040, 0.1); this.place(p, w[1], w[2]); this.samplePins.push(p); }
       this.setRover(room.cal.position()); for (const b of room.boards) if (b.needsData) room.drawBoard(b); };
     // console at the table edge, facing whoever comes in from the door
-    this.con = new Panel(1.5, 0.86, 600, { depthTest: true }); const m = this.con.mesh; m.rotation.order = 'YXZ'; m.rotation.set(-0.55, faceYaw, 0);
-    m.position.set(Math.sin(faceYaw) * 1.3, 1.12, Math.cos(faceYaw) * 1.3); g.add(m);
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.9, 10), new THREE.MeshBasicMaterial({ color: 0x555b62 })); post.position.set(Math.sin(faceYaw) * 1.36, 0.45, Math.cos(faceYaw) * 1.36); g.add(post);
+    this.con = new Panel(1.5, 0.86, 600, { depthTest: true }); const m = this.con.mesh; m.rotation.order = 'YXZ'; m.rotation.set(-0.9, faceYaw, 0); m.scale.setScalar(0.6);   // a low lectern: it must not hide the model behind it
+    m.position.set(Math.sin(faceYaw) * 1.22, 0.95, Math.cos(faceYaw) * 1.22); g.add(m);
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, 0.82, 10), new THREE.MeshBasicMaterial({ color: 0x555b62 })); post.position.set(Math.sin(faceYaw) * 1.28, 0.41, Math.cos(faceYaw) * 1.36); g.add(post);
     // mineral and night-IR maps, read pixel by pixel for the query
     this.px = {}; for (const [k, f, hw] of [['min', 'minerals.png', app.site.overlays?.minerals?.half], ['th', 'thermal.png', app.site.overlays?.thermal?.half]]) { if (!hw) continue; const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const x = c.getContext('2d'); x.drawImage(im, 0, 0); this.px[k] = { d: x.getImageData(0, 0, im.width, im.height).data, w: im.width, h: im.height, half: hw }; }; im.src = siteBase + f; }
     room.targets.push({ mesh: this.mesh, click: h => this.query(h.point) }, { mesh: m, click: h => this.conClick(h), move: h => this.conHover(h) });
