@@ -37,3 +37,9 @@ sc = Image.new('RGB', sl.size); sc.putdata([lut[v] for v in sl.getdata()]); sc =
 mn = Image.open(f'{SITE}/minerals.png').convert('RGBA').resize((1024, 1024), Image.BILINEAR); m2 = Image.eval(ortho, lambda v: int(v * 0.7)).convert('RGBA'); m2.alpha_composite(mn); m2 = m2.convert('RGB'); route(m2, H); m2.save(f'{OUT}/site_minerals.jpg', quality=84)
 oo = Image.open(f'{SITE}/outer_ortho_0_0.jpg').convert('RGB').resize((1024, 1024), Image.LANCZOS); th = Image.open(f'{SITE}/thermal.png').convert('RGBA').resize((1024, 1024), Image.BILINEAR)
 t2 = Image.eval(oo, lambda v: int(v * 0.6)).convert('RGBA'); t2.alpha_composite(th); t2 = t2.convert('RGB'); route(t2, outer['half'], 3); t2.save(f'{OUT}/site_thermal.jpg', quality=84); print('site maps')
+# background for the calendar: CTX context mosaic cropped to the whole Perseverance traverse (local frame, metres)
+BB = (-11600, 4400, -3400, 3800)   # xmin, xmax, ymin, ymax
+O = Image.open(f'{SITE}/outer_ortho_0_0.jpg').convert('L'); h = outer['half']; k = O.width / (2 * h)
+cr = O.crop((int((BB[0] + h) * k), int((h - BB[3]) * k), int((BB[1] + h) * k), int((h - BB[2]) * k))).resize((1600, int(1600 * (BB[3] - BB[2]) / (BB[1] - BB[0]))), Image.LANCZOS)
+Image.merge('RGB', [cr.point(lambda v: int(v * 0.95)), cr.point(lambda v: int(v * 0.78)), cr.point(lambda v: int(v * 0.62))]).save(f'{OUT}/traverse_map.jpg', quality=84)
+json.dump({'bbox': BB}, open(f'{OUT}/traverse_map.json', 'w')); print('traverse map', cr.size)

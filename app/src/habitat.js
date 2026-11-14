@@ -2,7 +2,7 @@
 // Scenario element (not NASA data): its position is the "base" point of the site file.
 import * as THREE from 'three';
 import { T, num } from './i18n.js';
-export const R = 4.2, H = 2.6, DOOR_W = 1.5, DOOR_H = 2.1, TUN = 2.4, RAMP = 2.2, TUN2 = 1.6, R2 = 5.6, XC = R + TUN2 + R2 - 0.3;   // TUN2/R2/XC: corridor and research room
+export const R = 4.2, H = 2.6, DOOR_W = 1.5, DOOR_H = 2.1, TUN = 2.4, RAMP = 2.2, TUN2 = 1.6, R2 = 7.0, XC = R + TUN2 + R2 - 0.3;   // TUN2/R2/XC: corridor and research room
 function tex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
 const panels = (base, line, cols, rows, extra) => tex(1024, 256, (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, base[0]); g.addColorStop(1, base[1]); c.fillStyle = g; c.fillRect(0, 0, w, h);
   c.strokeStyle = line; c.lineWidth = 3; for (let i = 0; i <= cols; i++) { c.beginPath(); c.moveTo(i * w / cols, 0); c.lineTo(i * w / cols, h); c.stroke(); } for (let j = 1; j < rows; j++) { c.beginPath(); c.moveTo(0, j * h / rows); c.lineTo(w, j * h / rows); c.stroke(); } extra?.(c, w, h); });
@@ -58,7 +58,7 @@ export class Habitat {
   groundY(x, z) { const [lx, lz] = this.local(x, z), r = Math.hypot(lx, lz), z1 = -R - TUN;
     if (r < R + 0.05) return this.floorY; { const [u, v] = this._uv(x, z); if (Math.hypot(u - XC, v) < R2 + 0.05 || (u > 0 && u < XC && Math.abs(v) < DOOR_W / 2 + 0.15)) return this.floorY; } if (Math.abs(lx) < DOOR_W / 2 + 0.15) { if (lz <= 0 && lz >= z1) return this.floorY; if (lz < z1 && lz > z1 - RAMP) return this.floorY + this.rampEnd * (z1 - lz) / RAMP; } return null; }
   canPass(x, z) { const [lx, lz] = this.local(x, z), r = Math.hypot(lx, lz), [u, v] = this._uv(x, z), side = Math.abs(v) < DOOR_W / 2 - 0.2 && u > 0, inDoor = Math.abs(lx) < DOOR_W / 2 - 0.2 && lz < 0 || side, rr = Math.hypot(u - XC, v);
-    if (Math.abs(r - R) < 0.4 && !inDoor) return false; if (Math.abs(rr - R2) < 0.4 && !(side && u < XC)) return false; if (rr < 1.0) return false;   // research room wall and central kiosk
+    if (Math.abs(r - R) < 0.4 && !inDoor) return false; if (Math.abs(rr - R2) < 0.4 && !(side && u < XC)) return false; if (rr < 1.25) return false;   // research room wall and central kiosk
     if (u > R - 0.2 && u < XC - R2 + 0.2 && Math.abs(v) >= DOOR_W / 2 - 0.2 && Math.abs(v) < DOOR_W / 2 + 0.5) return false; if (lz < -R + 0.2 && lz > -R - TUN - 0.2 && Math.abs(lx) >= DOOR_W / 2 - 0.2 && Math.abs(lx) < DOOR_W / 2 + 0.5) return false; return true; }
   update(dt, pos) { const [lx, lz] = this.local(pos.x, pos.z), near = this.app.started && Math.abs(lx) < 2.5 && lz < -R + 2.5 && lz > -R - TUN - 3.5, y = this.door.position.y, ty = near ? DOOR_H * 1.5 - 0.05 : DOOR_H / 2; this.door.position.y += (ty - y) * Math.min(1, dt * 4); }
 }

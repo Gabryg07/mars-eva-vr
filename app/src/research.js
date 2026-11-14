@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { Panel, rrect, text, wrap } from './ui.js';
 import { lang, P } from './i18n.js';
 import { R, H, DOOR_W, DOOR_H, TUN2, R2, XC } from './habitat.js';
+import { Calendar, Plastico, toolBoards } from './research-tools.js';
 const L = o => (typeof o === 'string' ? o : o[lang.cur] ?? o.it);
 const TOPIC = {
   shape: { c: '#ffb37a', t: { it: 'FORMA DEL PIANETA', en: 'SHAPE OF THE PLANET' } },
@@ -70,11 +71,11 @@ const LINKS = { title: { it: 'Fonti e link', en: 'Sources and links' }, rows: [
   ['pds-geosciences.wustl.edu', { it: 'spettri CRISM (PDS)', en: 'CRISM spectra (PDS)' }],
   ['pds-atmospheres.nmsu.edu', { it: 'dati meteo MEDA (PDS)', en: 'MEDA weather data (PDS)' }],
   ['mars.nasa.gov/mars2020', { it: 'sito della missione', en: 'mission website' }],
-], note: { it: 'Avvicinati ai pannelli per leggere. Y (R sulla tastiera) torna al menu.', en: 'Walk up to the panels to read. Y (R on the keyboard) goes back to the menu.' } };
+], note: { it: 'Punta un pannello e premi il grilletto (al PC: clic) per ingrandirlo. Y (R sulla tastiera) torna al menu.', en: 'Point at a panel and pull the trigger (on PC: click) to enlarge it. Y (R on the keyboard) goes back to the menu.' } };
 
 export class ResearchRoom {
   constructor(app, hab, root) {
-    this.app = app; this.hab = hab; this.boards = []; const s = hab.side, g = hab.group, col = c => new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide });
+    this.app = app; this.hab = hab; this.root = root; this.boards = []; this.targets = []; this.hover = null; const s = hab.side, g = hab.group, col = c => new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide });
     const add = (par, geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); par.add(o); return o; };
     // corridor from the base wall to the room wall
     const u0 = R - 0.25, u1 = XC - R2 + 0.3, um = s * (u0 + u1) / 2, Lc = u1 - u0, grey = col(0xcfd4d8), shell = col(0xc8bcae);
@@ -83,47 +84,78 @@ export class ResearchRoom {
     add(g, new THREE.PlaneGeometry(Lc, DOOR_W).rotateX(Math.PI / 2), grey, um, DOOR_H, 0); add(g, new THREE.PlaneGeometry(Lc, DOOR_W + 0.24).rotateX(Math.PI / 2), shell, um, DOOR_H + 0.15, 0);
     add(g, new THREE.PlaneGeometry(Lc, DOOR_W).rotateX(-Math.PI / 2), col(0x555b62), um, 0.004, 0);
     const sign = new Panel(1.5, 0.34, 400); sign.mesh.material.depthTest = true; sign.mesh.position.set(s * (R - 0.12), DOOR_H + 0.24, 0); sign.mesh.rotation.y = -s * Math.PI / 2; g.add(sign.mesh); this.sign = sign;
-    // the room: a wider module with the same construction as the base
-    const rg = this.rg = new THREE.Group(); rg.position.set(s * XC, 0, 0); rg.rotation.y = s * Math.PI / 2; g.add(rg);
+    // the room: a wide module with the same construction as the base
+    const rg = this.rg = new THREE.Group(); rg.position.set(s * XC, 0, 0); rg.rotation.y = s * Math.PI / 2; g.add(rg); const HH = H + 0.4;
     const a = Math.asin(DOOR_W / 2 / R2), wallT = (() => { const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const x = c.getContext('2d'), gr = x.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#2a3036'); gr.addColorStop(1, '#1b1f24'); x.fillStyle = gr; x.fillRect(0, 0, 1024, 256);
       x.strokeStyle = 'rgba(127,224,255,0.18)'; x.lineWidth = 3; for (let i = 0; i <= 24; i++) { x.beginPath(); x.moveTo(i * 1024 / 24, 0); x.lineTo(i * 1024 / 24, 256); x.stroke(); } x.fillStyle = '#7fe0ff'; x.fillRect(0, 205, 1024, 4); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; return t; })();
-    add(rg, new THREE.CylinderGeometry(R2 + 0.06, R2 + 0.06, H + 0.3, 48, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ color: 0xd9d0c4 }), 0, (H + 0.3) / 2);
-    add(rg, new THREE.CylinderGeometry(R2, R2, H + 0.3, 48, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ map: wallT, side: THREE.BackSide }), 0, (H + 0.3) / 2);
-    add(rg, new THREE.CylinderGeometry(R2 + 0.03, R2 + 0.03, H + 0.3 - DOOR_H, 6, 1, true, Math.PI - a, 2 * a), col(0xbfb2a2), 0, DOOR_H + (H + 0.3 - DOOR_H) / 2);
-    const dome = add(rg, new THREE.SphereGeometry(R2 + 0.06, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xd9d0c4 }), 0, H + 0.3); dome.scale.y = 0.38;
-    const ceil = add(rg, new THREE.SphereGeometry(R2, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x343b42, side: THREE.BackSide }), 0, H + 0.3); ceil.scale.y = 0.36;
-    add(rg, new THREE.RingGeometry(R2 * 0.3, R2 * 0.36, 48).rotateX(Math.PI / 2), col(0xe8f8ff), 0, H + 0.3 + R2 * 0.36 * 0.9);
-    add(rg, new THREE.CircleGeometry(R2, 48).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x3b4148 }), 0, 0.005);
-    add(rg, new THREE.RingGeometry(0.95, 1.05, 48).rotateX(-Math.PI / 2), col(0x7fe0ff), 0, 0.01);
-    add(rg, new THREE.CylinderGeometry(R2 + 0.25, R2 + 0.4, 3.2, 48, 1, true), col(0x6b5a4c), 0, -1.6);
-    // central kiosk, two faces: documentation towards the door, sources on the back
-    add(rg, new THREE.BoxGeometry(1.9, 1.45, 0.12), new THREE.MeshBasicMaterial({ color: 0x1b1714 }), 0, 1.5, 0); add(rg, new THREE.CylinderGeometry(0.12, 0.25, 0.8, 12), new THREE.MeshBasicMaterial({ color: 0x555b62 }), 0, 0.4, 0);
-    this.docs = new Panel(1.8, 1.35, 560, { depthTest: true }); this.docs.mesh.position.set(0, 1.5, -0.07); this.docs.mesh.rotation.y = Math.PI; rg.add(this.docs.mesh);
-    this.links = new Panel(1.8, 1.35, 560, { depthTest: true }); this.links.mesh.position.set(0, 1.5, 0.07); rg.add(this.links.mesh);
-    // wall boards, in topic order starting left of the door
-    const photoStops = app.site.pois.filter(p => p.photos?.length);
-    const items = [...MAPS.map(m => ({ kind: 'map', ...m })), ...photoStops.map(p => ({ kind: 'photo', topic: 'photo', p }))], n = items.length, span = 2 * Math.PI - 0.62;
-    items.forEach((it, i) => { const phi = Math.PI + 0.31 + span * (i + 0.5) / n, pnl = new Panel(1.62, 1.24, 600, { depthTest: true });
-      pnl.mesh.position.set(Math.sin(phi) * (R2 - 0.12), 1.55, Math.cos(phi) * (R2 - 0.12)); pnl.mesh.rotation.y = phi + Math.PI; rg.add(pnl.mesh);
-      const b = { ...it, pnl, imgs: [] }; this.boards.push(b);
-      const files = it.kind === 'map' ? [`${root}research/${it.img}`] : it.p.photos.slice(0, 4).map(ph => `${root}sites/${app.siteId}/${ph.file}`);
-      files.forEach((f, k) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { b.imgs[k] = im; this.drawBoard(b); }; im.src = f; }); });
+    add(rg, new THREE.CylinderGeometry(R2 + 0.06, R2 + 0.06, HH, 56, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ color: 0xd9d0c4 }), 0, HH / 2);
+    add(rg, new THREE.CylinderGeometry(R2, R2, HH, 56, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ map: wallT, side: THREE.BackSide }), 0, HH / 2);
+    add(rg, new THREE.CylinderGeometry(R2 + 0.03, R2 + 0.03, HH - DOOR_H, 6, 1, true, Math.PI - a, 2 * a), col(0xbfb2a2), 0, DOOR_H + (HH - DOOR_H) / 2);
+    const dome = add(rg, new THREE.SphereGeometry(R2 + 0.06, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xd9d0c4 }), 0, HH); dome.scale.y = 0.34;
+    const ceil = add(rg, new THREE.SphereGeometry(R2, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x343b42, side: THREE.BackSide }), 0, HH); ceil.scale.y = 0.32;
+    add(rg, new THREE.RingGeometry(R2 * 0.3, R2 * 0.35, 48).rotateX(Math.PI / 2), col(0xe8f8ff), 0, HH + R2 * 0.35 * 0.85);
+    add(rg, new THREE.CircleGeometry(R2, 56).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x3b4148 }), 0, 0.005);
+    add(rg, new THREE.CylinderGeometry(R2 + 0.25, R2 + 0.4, 3.2, 56, 1, true), col(0x6b5a4c), 0, -1.6);
+    // boards: maps, then the interactive calendar opposite the door, then the research tools, photos and documentation
+    const photoStops = app.site.pois.filter(p => p.photos?.length), mk = (w = 1.62, h = 1.24) => new Panel(w, h, 600, { depthTest: true });
+    const items = MAPS.map(m => ({ kind: 'map', ...m }));
+    this.cal = new Calendar(this, `${root}research/`); items.push({ kind: 'cal', slots: 2, pnl: this.cal.pnl });
+    const tools = toolBoards(this, mk); items.push(...tools);
+    items.push(...photoStops.map(p => ({ kind: 'photo', topic: 'photo', p })));
+    items.push({ kind: 'docs', topic: 'docs' }, { kind: 'links', topic: 'docs' });
+    const slots = items.reduce((n, it) => n + (it.slots || 1), 0), span = 2 * Math.PI - 0.5; let k = 0;
+    for (const it of items) { const w = it.slots || 1, phi = Math.PI + 0.25 + span * (k + w / 2) / slots, rr = R2 - (w > 1 ? 0.32 : 0.12); k += w;
+      const pnl = it.pnl || mk(); pnl.mesh.position.set(Math.sin(phi) * rr, 1.55, Math.cos(phi) * rr); pnl.mesh.rotation.y = phi + Math.PI; rg.add(pnl.mesh);
+      const b = { ...it, pnl, imgs: [] }; this.boards.push(b); if (it.kind !== 'cal') this.targets.push({ mesh: pnl.mesh, click: () => this.openZoom(b) });
+      const files = it.kind === 'map' ? [`${root}research/${it.img}`] : it.kind === 'photo' ? it.p.photos.slice(0, 4).map(ph => `${root}sites/${app.siteId}/${ph.file}`) : [];
+      files.forEach((f, j) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { b.imgs[j] = im; this.drawBoard(b); }; im.src = f; }); }
+    this.targets.push({ mesh: this.cal.pnl.mesh, click: (h) => this.cal.click(h), move: (h) => this.cal.hover(h) });
+    // the queryable terrain model in the middle of the room
+    const [cx, cz] = hab.world(s * XC, 0); this.plastico = new Plastico(this, `${root}research/`, `${root}sites/${app.siteId}/`, cx, hab.floorY, cz, hab.yaw + (s > 0 ? Math.PI / 2 : -Math.PI / 2));
+    // zoomed view of a board, in front of the eyes
+    this.zoom = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ transparent: true, depthTest: false, depthWrite: false, toneMapped: false })); this.zoom.renderOrder = 400; this.zoom.visible = false; this.zoom.position.z = -1.05; app.camera.add(this.zoom);
+    this.dot = new THREE.Mesh(new THREE.SphereGeometry(0.012, 10, 8), new THREE.MeshBasicMaterial({ color: 0x7fe0ff, depthTest: false })); this.dot.renderOrder = 401; this.dot.visible = false; app.scene.add(this.dot);
+    this.ray = new THREE.Raycaster(); this.downloads();
+    addEventListener('keydown', e => { if (!this.near()) return; if (e.code === 'BracketLeft') this.cal.step(e.shiftKey ? -10 : -1); if (e.code === 'BracketRight') this.cal.step(e.shiftKey ? 10 : 1); if (e.code === 'Escape' && this.zoom.visible) this.zoom.visible = false; });
     this.redraw();
+  }
+  near() { const h = this.app.player.head(); return this.hab.inRoom(h.x, h.z); }
+  openZoom(b) { const k = 0.62; this.zoom.material.map = b.pnl.tex; this.zoom.material.needsUpdate = true; this.zoom.scale.set(b.pnl.w * k, b.pnl.h * k, 1); this.zoom.visible = true; }
+  downloads() {   // on a PC, the same data can be saved as files
+    const d = this.dl = document.createElement('div'); d.id = 'dl'; d.style.cssText = 'position:fixed;right:12px;bottom:12px;font-size:13px;line-height:1.6;background:#000a;padding:10px 12px;border-radius:8px;display:none;z-index:5'; document.body.appendChild(d);
+    this.drawDl = () => { const f = (n, t) => `<a style="color:#7fe0ff" href="${this.root}research/${n}" download>${t}</a>`;
+      d.innerHTML = `<b style="color:#ffb37a">${L({ it: 'Scarica i dati', en: 'Download the data' })}</b><br>${f('eva_route.geojson', L({ it: 'percorso EVA (GeoJSON)', en: 'EVA route (GeoJSON)' }))}<br>${f('eva_stops.csv', L({ it: 'tappe (CSV)', en: 'stops (CSV)' }))}<br>${f('perseverance_sols.csv', L({ it: 'Perseverance sol per sol (CSV)', en: 'Perseverance sol by sol (CSV)' }))}<br>${f('activity.json', L({ it: 'attività, campioni, meteo (JSON)', en: 'activity, samples, weather (JSON)' }))}`; };
+  }
+  update(dt, cam) {
+    const { app } = this, xr = app.renderer.xr.isPresenting, inside = this.near();
+    this.dl.style.display = inside && !xr ? 'block' : 'none'; if (app.hud && !app.menu?.open && inside !== this._in) { this._in = inside; app.hud.panel.mesh.visible = !inside || xr; }   // on a PC the helmet readout would cover the boards this.cal.update(dt); this.plastico.update(dt, cam);
+    this.hover = null; this.dot.visible = false; if (!inside || app.menu?.open) return;
+    const cast = (o, d, hand) => { this.ray.set(o, d); const hits = this.ray.intersectObjects(this.targets.map(t => t.mesh), false); const h = hits[0]; if (!h || h.distance > 9) return null; return { t: this.targets.find(t => t.mesh === h.object), h, hand }; };
+    const v1 = new THREE.Vector3(), v2 = new THREE.Vector3(), q = new THREE.Quaternion();
+    if (xr) { for (const hand of ['right', 'left']) { const c = app.player.hands[hand]; if (!c) continue; c.getWorldPosition(v1); c.getWorldQuaternion(q); const r = cast(v1, v2.set(0, 0, -1).applyQuaternion(q), hand); const line = c.getObjectByName('ray'); if (line) line.scale.z = r ? r.h.distance : 0.25; if (r && !this.hover) this.hover = r; } }
+    else { const m = document.pointerLockElement ? new THREE.Vector2() : app.menu.mouse; this.ray.setFromCamera(m, app.camera); this.hover = cast(this.ray.ray.origin.clone(), this.ray.ray.direction.clone(), 'mouse'); }
+    if (this.hover) { this.dot.position.copy(this.hover.h.point); this.dot.visible = !this.zoom.visible; this.hover.t.move?.(this.hover.h); }
+  }
+  click() {
+    if (this.zoom.visible) { this.zoom.visible = false; return true; }
+    if (!this.hover) return false; this.hover.t.click(this.hover.h); return true;
   }
   redraw() {
     this.sign.draw((c, W, Hh) => { rrect(c, 2, 2, W - 4, Hh - 4, 16); c.fillStyle = '#1b1714'; c.fill(); text(c, L({ it: 'SALA DATI →', en: 'RESEARCH ROOM →' }), W / 2, Hh * 0.68, 64, '#7fe0ff', 700, 'center'); });
-    for (const b of this.boards) this.drawBoard(b);
-    this.docs.draw((c, W, Hh) => { this.frame(c, W, Hh, '#ffb37a'); text(c, L(DOCS.title), 40, 70, 40, '#fff', 700); let y = 124;
-      for (const l of DOCS.lines) { c.fillStyle = '#ffb37a'; c.fillRect(40, y - 16, 10, 10); y = wrap(c, L(l), 66, y, W - 106, 25, 33, '#fff') + 12; } });
-    this.links.draw((c, W, Hh) => { this.frame(c, W, Hh, '#7fe0ff'); text(c, L(LINKS.title), 40, 70, 40, '#fff', 700); let y = 130;
-      for (const [u, d] of LINKS.rows) { text(c, u, 40, y, 26, '#7fe0ff', 700); text(c, L(d), 40, y + 32, 23, '#d9c4b2'); y += 86; }
-      wrap(c, L(LINKS.note), 40, Hh - 54, W - 80, 22, 28, '#ffb37a', 600); });
+    for (const b of this.boards) this.drawBoard(b); this.plastico.redraw(); this.drawDl();
   }
   frame(c, W, Hh, colr) { rrect(c, 4, 4, W - 8, Hh - 8, 26); c.fillStyle = 'rgba(14,9,6,0.95)'; c.fill(); c.lineWidth = 4; c.strokeStyle = colr; c.stroke(); }
+  band(c, W, colr, label) { c.fillStyle = colr; rrect(c, 4, 4, W - 8, 40, 20); c.fill(); c.fillRect(4, 24, W - 8, 20); text(c, label, 30, 33, 21, '#1a0f0a', 700); }
   drawBoard(b) {
+    if (b.kind === 'cal') { this.cal.draw(); return; }
+    if (b.render) { b.pnl.draw((c, W, Hh) => b.render(c, W, Hh)); return; }
+    if (b.kind === 'docs') { b.pnl.draw((c, W, Hh) => { this.frame(c, W, Hh, '#ffb37a'); this.band(c, W, '#ffb37a', L({ it: 'DOCUMENTAZIONE', en: 'DOCUMENTATION' })); text(c, L(DOCS.title), 30, 90, 32, '#fff', 700); let y = 140;
+      for (const l of DOCS.lines) { c.fillStyle = '#ffb37a'; c.fillRect(30, y - 15, 10, 10); y = wrap(c, L(l), 54, y, W - 84, 22, 29, '#fff') + 12; } }); return; }
+    if (b.kind === 'links') { b.pnl.draw((c, W, Hh) => { this.frame(c, W, Hh, '#ffb37a'); this.band(c, W, '#ffb37a', L({ it: 'DOCUMENTAZIONE', en: 'DOCUMENTATION' })); text(c, L(LINKS.title), 30, 90, 32, '#fff', 700); let y = 142;
+      for (const [u, d] of LINKS.rows) { text(c, u, 30, y, 24, '#7fe0ff', 700); text(c, L(d), 30, y + 30, 21, '#d9c4b2'); y += 78; } wrap(c, L(LINKS.note), 30, Hh - 60, W - 60, 21, 27, '#ffb37a', 600); }); return; }
     const tp = TOPIC[b.topic];
     b.pnl.draw((c, W, Hh) => {
-      this.frame(c, W, Hh, tp.c); c.fillStyle = tp.c; rrect(c, 4, 4, W - 8, 40, 20); c.fill(); c.fillRect(4, 24, W - 8, 20); text(c, L(tp.t), 30, 33, 21, '#1a0f0a', 700);
+      this.frame(c, W, Hh, tp.c); this.band(c, W, tp.c, L(tp.t));
       if (b.kind === 'photo') {
         const p = b.p; text(c, P(p, 'title'), 30, 88, 32, '#fff', 700); const cw = 300, ch = 225;
         p.photos.slice(0, 4).forEach((ph, i) => { const x = 30 + (i % 2) * (cw + 16), y = 110 + (i >> 1) * (ch + 34), im = b.imgs[i];

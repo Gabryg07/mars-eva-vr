@@ -129,11 +129,11 @@ async function boot() {
   app.setLayer(+(Q.get('layer') ?? 0)); if (Q.get('track')) app.toggleTrack();
   app.reset = () => { if (player.lift) player.toggleOverview(); mission.reset(); player.placeAt(sx, sz, startYaw); app.started = false; app.dataMode = false; menu.show(true); globe.reset(); hab.redraw(); };
   // controls: A/B on the right controller, X/Y on the left; same actions on the keyboard
-  player.onButton = (hand, i) => { if (i === 0 && menu.open) { menu.click(); return; } if (i === 1 && globe.busy(hand)) return; if (hand === 'right' && i === 0) player.toggleOverview(); else if (hand === 'right' && i === 1) arm.toggle(); else if (i === 0 || i === 1) return; else if (hand === 'right' && i === 4) app.setLayer(app.layer + 1); else if (hand === 'right' && i === 5) app.toggleTrack(); else if (hand === 'left' && i === 5) app.reset(); else if (hand === 'left' && i === 4) credits.toggle(); };
+  player.onButton = (hand, i) => { if (i === 0 && menu.open) { menu.click(); return; } if (i === 0 && room.click()) return; if (i === 1 && globe.busy(hand)) return; if (hand === 'right' && i === 0) player.toggleOverview(); else if (hand === 'right' && i === 1) arm.toggle(); else if (i === 0 || i === 1) return; else if (hand === 'right' && i === 4) app.setLayer(app.layer + 1); else if (hand === 'right' && i === 5) app.toggleTrack(); else if (hand === 'left' && i === 5) app.reset(); else if (hand === 'left' && i === 4) credits.toggle(); };
   addEventListener('keydown', e => { const m = /^Digit([1-9])$/.exec(e.code); if (m && +m[1] <= app.LAYERS.length) app.setLayer(+m[1] - 1);
     if (e.code === 'KeyL') app.setLayer(app.layer + 1); if (e.code === 'KeyT') app.toggleTrack(); if (e.code === 'KeyR') app.reset(); if (e.code === 'KeyH') hud.panel.mesh.visible = !hud.panel.mesh.visible; if (e.code === 'KeyC') credits.toggle(); if (e.code === 'KeyM') player.toggleOverview(); if (e.code === 'KeyI') arm.toggle(); if (e.code === 'KeyV') helmet.off = !helmet.off; if (e.code === 'Enter' && menu.open) app.start(); });
   renderer.domElement.addEventListener('mousemove', e => menu.mouse.set(e.clientX / innerWidth * 2 - 1, 1 - e.clientY / innerHeight * 2));
-  player.onClick = () => menu.open && !renderer.xr.isPresenting && menu.click();   // a click on a menu button is not a request to capture the mouse
+  player.onClick = () => !renderer.xr.isPresenting && (menu.open ? menu.click() : room.click());   // a click on a menu button is not a request to capture the mouse
   const vr = VRButton.createButton(renderer, { optionalFeatures: ['local-floor', 'bounded-floor'] }); document.body.appendChild(vr);
   helpText(); if (Q.get('data')) app.explore(); else if (Q.get('start') || Q.get('x')) app.start();
   $('boot').style.opacity = 0; setTimeout(() => $('boot').remove(), 700);
@@ -142,7 +142,7 @@ async function boot() {
     const dt = Math.min(clock.getDelta(), 0.1); shared.uTime.value += dt;
     menu.update(); player.update(dt); if (app.started) mission.idle(dt);
     camera.updateMatrixWorld(); camera.getWorldPosition(cam); shared.uCam.value.copy(cam); sky.position.copy(cam); camera.getWorldDirection(dir);
-    if (!player.lift && app.started) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam);
+    if (!player.lift && app.started) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam); room.update(dt, cam);
     const tris = terrain.update(cam, dir, renderer.xr.isPresenting ? 0.2 : 0.35, app.baseRes || 1);
     renderer.render(scene, camera);
     fpsN++; fpsT += dt; if (fpsT > 1) { app.stats = { fps: Math.round(fpsN / fpsT), tris, calls: renderer.info.render.calls }; fpsN = 0; fpsT = 0; }
