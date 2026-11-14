@@ -1,37 +1,133 @@
-// Perseverance as a companion: NASA's own 3D model (simplified for the headset) follows the astronaut along the route.
-// It keeps a few metres behind, tilts with the real terrain, waits outside the habitat and never drives onto forbidden slopes.
+// @ts-nocheck
+// Perseverance follower. Uses the supplied GLB (metric, nose +Z, wheels on y=0).
+// A small placeholder stays visible until that mesh finishes loading.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-const KEEP = 4.2, START = 5.6, SPEED = 2.4, FAR = 45;
+
+const BODY = 0xd7d2c8, GOLD = 0xb08d57, DARK = 0x2a2420, LENS = 0x7ec8c3;
+const MODEL_URL = `${import.meta.env.BASE_URL}models/perseverance.glb`;
+// Real rover is ~4.1 m long; keep the nose clear of the suit.
+const FOLLOW = 8.4;
+
+function mat(color, rough = 0.7) {
+  return new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0.25 });
+}
+
+function buildPlaceholder() {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.42, 2.05), mat(BODY, 0.55));
+  body.position.y = 0.92; g.add(body);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.15, 8), mat(0xeeeae4, 0.4));
+  mast.position.set(0, 1.75, 0.35); g.add(mast);
+  const wheels = [];
+  const wgeo = new THREE.CylinderGeometry(0.26, 0.26, 0.18, 10);
+  const wmat = mat(DARK, 0.85);
+  for (const [x, z] of [[-0.72, 0.7], [-0.72, -0.7], [0.72, 0.7], [0.72, -0.7]]) {
+    const w = new THREE.Mesh(wgeo, wmat);
+    w.rotation.z = Math.PI / 2; w.position.set(x, 0.26, z); g.add(w); wheels.push(w);
+  }
+  g.userData.wheels = wheels;
+  return g;
+}
+
 export class Rover {
-  constructor(app, url, x, z, yaw) {
-    this.app = app; this.g = new THREE.Group(); this.g.rotation.order = 'YXZ'; this.x = x; this.z = z; this.yaw = yaw; this.moving = false; this.ready = false; this.off = false;
-    app.world.add(this.g); this._place(1);
-    // one soft sun and sky light: the rover is the only lit object in the scene
-    const sun = new THREE.DirectionalLight(0xfff0dc, 2.2); sun.position.set(-0.5, 0.8, 0.3); const amb = new THREE.HemisphereLight(0xf2c9a4, 0x6b4630, 1.5); app.scene.add(sun, amb);
-    new GLTFLoader().load(url, gltf => {
-      gltf.scene.traverse(o => { if (!o.isMesh) return; const m = o.material; o.material = new THREE.MeshLambertMaterial({ map: m.map || null, color: m.color, side: m.side, transparent: m.transparent, opacity: m.opacity, alphaTest: m.alphaTest }); m.dispose(); o.frustumCulled = true; });
-      this.g.add(gltf.scene); this.ready = true;
-    }, undefined, e => console.warn('rover model', e));
+  constructor(app) {
+    this.app = app;
+    this.group = new THREE.Group();
+    this.group.name = 'perseverance';
+    this.placeholder = buildPlaceholder();
+    this.group.add(this.placeholder);
+    app.world.add(this.group);
+    this.trail = [];
+    this.spin = 0;
+    this.model = null;
+    this.loadModel();
   }
-  _place(k) {
-    const { app, g } = this, gy = app.ground(this.x, this.z) ?? 0, c = Math.cos(this.yaw), s = Math.sin(this.yaw), fx = s, fz = c;   // model front is +z
-    const hf = app.ground(this.x + fx * 1.2, this.z + fz * 1.2) ?? gy, hb = app.ground(this.x - fx * 1.2, this.z - fz * 1.2) ?? gy, hl = app.ground(this.x + fz * 1.1, this.z - fx * 1.1) ?? gy, hr = app.ground(this.x - fz * 1.1, this.z + fx * 1.1) ?? gy;
-    const y = (hf + hb + hl + hr) / 4, pitch = -Math.atan2(hf - hb, 2.4), roll = Math.atan2(hr - hl, 2.2);
-    g.position.set(this.x, g.position.y + (y - g.position.y) * k, this.z); g.rotation.y = this.yaw; g.rotation.x += (pitch - g.rotation.x) * k; g.rotation.z += (roll - g.rotation.z) * k;
+  loadModel() {
+    const loader = new GLTFLoader();
+    loader.load(MODEL_URL, (gltf) => {
+      const model = gltf.scene;
+      model.name = 'perseverance-mesh';
+      model.traverse((o) => {
+        if (!o.isMesh) return;
+        o.castShadow = false;
+        o.receiveShadow = false;
+        o.frustumCulled = true;
+        const list = Array.isArray(o.material) ? o.material : [o.material];
+        for (const m of list) {
+          if (!m) continue;
+          // Opaque panels stay double-sided (authored that way). Glass shouldn't write depth.
+          if (m.transparent && m.opacity < 0.99) m.depthWrite = false;
+        }
+      });
+      this.group.add(model);
+      this.model = model;
+      this.group.remove(this.placeholder);
+      this.placeholder.traverse((o) => {
+        if (o.geometry) o.geometry.dispose();
+        if (o.material) o.material.dispose();
+      });
+      this.placeholder = null;
+    }, undefined, () => {
+      // Placeholder stays if the mesh cannot be fetched.
+    });
   }
-  update(dt, cam) {
-    const { app } = this; this.g.visible = !this.off; if (this.off || app.player.lift) return;
-    const inHab = app.habitat.groundY(cam.x, cam.z) != null; let dx = cam.x - this.x, dz = cam.z - this.z, d = Math.hypot(dx, dz);
-    if (d > FAR && !inHab) { // the astronaut teleported far away: catch up just behind them
-      const a = app.player.headYaw(), bx = cam.x + Math.sin(a) * 7, bz = cam.z + Math.cos(a) * 7; if (app.slope(bx, bz) < 28 && app.habitat.groundY(bx, bz) == null) { this.x = bx; this.z = bz; this.yaw = Math.atan2(cam.x - bx, cam.z - bz); this._place(1); } return; }
-    if (inHab) { this.moving = false; return; }
-    if (d > START) this.moving = true; else if (d < KEEP) this.moving = false;
-    if (this.moving) {
-      const want = Math.atan2(dx, dz); let da = ((want - this.yaw + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; this.yaw += Math.sign(da) * Math.min(Math.abs(da), dt * 1.6);
-      const sp = Math.min(SPEED, 0.6 + (d - KEEP) * 0.9) * Math.max(0, Math.cos(da)) * dt, nx = this.x + Math.sin(this.yaw) * sp, nz = this.z + Math.cos(this.yaw) * sp;
-      if (app.slope(nx, nz) < 30 && app.habitat.canPass(nx, nz) && app.habitat.groundY(nx, nz) == null) { this.x = nx; this.z = nz; }
+  reset() { this.trail.length = 0; }
+  update(dt, pos) {
+    const show = this.app.settings?.rover !== false;
+    this.group.visible = show;
+    if (!show) return;
+    const hab = this.app.habitat;
+    const inside = hab?.inside(pos);
+    if (!inside) {
+      const last = this.trail[this.trail.length - 1];
+      if (!last || Math.hypot(pos.x - last.x, pos.z - last.z) > 0.5) this.trail.push({ x: pos.x, z: pos.z });
+      if (this.trail.length > 2400) this.trail.splice(0, this.trail.length - 2400);
     }
-    this._place(Math.min(1, dt * 6));
+    let tx, tz, dx, dz;
+    if (inside && hab) {
+      tx = hab.park.x; tz = hab.park.z;
+      dx = hab.fx; dz = hab.fz;
+    } else {
+      const behind = this.pointBehind(FOLLOW);
+      tx = behind.x; tz = behind.z;
+      dx = behind.dx; dz = behind.dz;
+    }
+    const gy = this.app.ground(tx, tz);
+    if (gy == null) return;
+    const p = this.group.position;
+    const k = 1 - Math.exp(-dt * 2.2);
+    p.x += (tx - p.x) * k; p.z += (tz - p.z) * k; p.y += (gy - p.y) * Math.min(1, dt * 8);
+    if (Math.hypot(dx, dz) > 0.001) {
+      const yaw = Math.atan2(dx, dz);
+      let d = yaw - this.group.rotation.y;
+      d = Math.atan2(Math.sin(d), Math.cos(d));
+      this.group.rotation.y += d * Math.min(1, dt * 3.2);
+    }
+    const speed = Math.hypot((tx - p.x), (tz - p.z));
+    this.spin += speed * 0.55;
+    const wheels = this.placeholder?.userData.wheels;
+    if (wheels) for (const w of wheels) w.rotation.x = this.spin;
+  }
+  pointBehind(dist) {
+    const tr = this.trail;
+    if (tr.length < 2) {
+      const hab = this.app.habitat;
+      return { x: hab.park.x, z: hab.park.z, dx: hab.fx, dz: hab.fz };
+    }
+    let remain = dist;
+    let i = tr.length - 1;
+    let ax = tr[i].x, az = tr[i].z;
+    while (i > 0) {
+      const b = tr[i - 1];
+      const seg = Math.hypot(ax - b.x, az - b.z) || 1e-4;
+      if (seg >= remain) {
+        const t = remain / seg;
+        return { x: ax + (b.x - ax) * t, z: az + (b.z - az) * t, dx: ax - b.x, dz: az - b.z };
+      }
+      remain -= seg; ax = b.x; az = b.z; i--;
+    }
+    const a = tr[1], b = tr[0];
+    return { x: b.x, z: b.z, dx: a.x - b.x, dz: a.z - b.z };
   }
 }

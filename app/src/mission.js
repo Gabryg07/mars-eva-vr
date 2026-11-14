@@ -1,3 +1,4 @@
+// @ts-nocheck
 // EVA accounting: every metre the astronaut covers (walking or teleporting) is converted into mission time,
 // oxygen and radiation dose with a transparent physical model. All parameters come from the site file.
 const SOL_S = 88775, MARS_HOUR_S = SOL_S / 24;
@@ -23,7 +24,12 @@ export class Mission {
   // remaining planned path length from the current target back to base (m)
   check(pos) {   // call each frame with the astronaut position; returns the POI just reached, if any
     const t = this.target; if (!t) return null;
-    if (Math.hypot(pos.x - t.x, pos.z + t.y) < (this.leg === this.order.length - 1 ? 3 : 9)) { this.visited.add(t.id); this.leg++; if (this.leg >= this.order.length) this.done = true; this.changed = true; return t; }
+    const back = t.id === 'base';
+    const reach = back ? 2.55 : 9;
+    if (Math.hypot(pos.x - t.x, pos.z + t.y) < reach) {
+      if (back && this.insideGate && !this.insideGate(pos)) return null;
+      this.visited.add(t.id); this.leg++; if (this.leg >= this.order.length) this.done = true; this.changed = true; return t;
+    }
     return null;
   }
   state(pos) {
@@ -33,7 +39,7 @@ export class Mission {
     const reserve = o.reserveFraction * o.tankKg * 1000 / this.o2Rate(walkP);
     const lmst = hms(this.p.startLMST) + this.t / MARS_HOUR_S, daylight = (this.sunset - lmst) * MARS_HOUR_S;
     let alert = null;
-    if (autonomy - reserve < backTime) alert = 'OSSIGENO: RIENTRA ALLA BASE'; else if (daylight < backTime + 1800) alert = 'TRAMONTO VICINO: RIENTRA ALLA BASE';
+    if (autonomy - reserve < backTime) alert = 'o2'; else if (daylight < backTime + 1800) alert = 'sun';
     return { o2Frac, autonomy, backTime, margin: autonomy - reserve - backTime, lmst, daylight, alert };
   }
 }

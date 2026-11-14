@@ -2,35 +2,70 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Marswalk — prova generale di un'uscita su Marte</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marswalk — EVA su Marte</title>
 <style>
-  html,body{margin:0;height:100%;background:#1a0f0a;color:#f4e3d3;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden}
-  canvas{display:block}
-  #boot{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(ellipse at 50% 60%,#5a2f1c 0%,#1a0f0a 70%);z-index:10;text-align:center;padding:24px;transition:opacity .6s}
-  #boot h1{font-size:clamp(28px,5vw,54px);margin:0;letter-spacing:.04em;font-weight:700}
-  #boot p{margin:0;max-width:640px;line-height:1.45;opacity:.85}
-  #bar{width:min(420px,70vw);height:6px;background:#ffffff22;border-radius:3px;overflow:hidden}
-  #bar i{display:block;height:100%;width:0;background:#ff9a52;transition:width .2s}
-  #msg{font-size:13px;opacity:.7;min-height:1.2em}
-  #help{position:fixed;left:12px;bottom:12px;font-size:12px;line-height:1.5;background:#0008;padding:8px 10px;border-radius:8px;max-width:340px;pointer-events:none}
-  #help b{color:#ffb37a}
-  #legend{position:fixed;right:12px;top:12px;font-size:13px;line-height:1.5;background:#0009;padding:10px 12px;border-radius:8px;max-width:260px;pointer-events:none;display:flex;flex-direction:column}
-  #legend:empty{display:none}
-  #legend b{font-size:15px}
-  #legend small{opacity:.7;margin-bottom:4px}
-  #legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:8px}
+  html,body{margin:0;height:100%;background:#140c09;color:#f4e3d3;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  button,input{font:inherit;color:inherit}
+  #menu{min-height:100%;display:grid;grid-template-columns:1fr;gap:28px;padding:28px 20px 40px;box-sizing:border-box;max-width:1100px;margin:0 auto}
+  @media(min-width:900px){#menu{grid-template-columns:1fr 1fr;align-items:center;min-height:100vh}}
+  .kicker{letter-spacing:.22em;text-transform:uppercase;color:#ff9a52;font-size:13px;margin:0}
+  h1{font-size:clamp(40px,6vw,64px);line-height:.95;margin:8px 0}
+  .lead{max-width:38rem;line-height:1.45;color:#d9c3b0}
+  .card{border:1px solid #ffffff22;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;background:#1c120e}
+  .row{display:flex;gap:8px}
+  button{min-height:44px;border-radius:999px;border:1px solid #ffffff22;background:transparent;padding:8px 14px;cursor:pointer}
+  button.on,button.primary{background:#ff9a52;color:#140c09;border-color:#ff9a52;font-weight:700}
+  button.primary{width:100%;font-size:18px;min-height:48px}
+  label{display:flex;flex-direction:column;gap:6px;font-size:14px;color:#d9c3b0}
+  input[type=range]{width:100%}
+  #globe{height:320px;border-radius:16px;border:1px solid #ffffff22;background:#0c0806;touch-action:none}
+  @media(min-width:900px){#globe{height:460px}}
+  .muted{color:#d9c3b0;font-size:14px;line-height:1.4}
+  .help{display:grid;gap:10px}
+  @media(min-width:700px){.help{grid-template-columns:1fr 1fr}}
+  .help article{border:1px solid #ffffff22;border-radius:12px;padding:12px}
+  .help h2{margin:0 0 4px;color:#ffb37a;font-size:16px}
+  #stage{position:fixed;inset:0;display:none;background:#140c09}
+  #stage canvas{display:block}
+  #load{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000a;padding:10px 14px;border-radius:10px;font-size:14px}
 </style>
 </head>
 <body>
-<div id="boot">
-  <h1>MARSWALK</h1>
-  <p id="tag">Prova generale di un'uscita a piedi su Marte: terreno e immagini reali delle missioni NASA, cratere Jezero.</p>
-  <div id="bar"><i></i></div>
-  <div id="msg">Caricamento dei dati orbitali…</div>
+<div id="menu">
+  <section>
+    <p class="kicker" id="kicker"></p>
+    <h1 id="title"></h1>
+    <p class="lead" id="lead"></p>
+    <div class="card">
+      <div>
+        <p class="muted" id="langLabel"></p>
+        <div class="row">
+          <button type="button" id="btnIt" class="on">Italiano</button>
+          <button type="button" id="btnEn">English</button>
+        </div>
+      </div>
+      <label id="sensLabel">Sensibilità
+        <input id="sens" type="range" min="0.6" max="1.8" step="0.05" value="1">
+      </label>
+      <button type="button" id="btnRover"></button>
+    </div>
+    <p><button type="button" class="primary" id="start"></button></p>
+    <div class="help">
+      <article><h2 id="questTitle"></h2><p class="muted" id="questBody"></p></article>
+      <article><h2 id="pcTitle"></h2><p class="muted" id="pcBody"></p></article>
+    </div>
+  </section>
+  <section>
+    <div id="globe"></div>
+    <p><b id="globeTitle"></b><br><span class="muted" id="globeHelp"></span></p>
+    <label id="scaleLabel">Scala
+      <input id="scale" type="range" min="0.35" max="4" step="0.05" value="1">
+    </label>
+    <p class="muted" id="scaleRead">1.0×</p>
+  </section>
 </div>
-<div id="help"></div>
-<div id="legend"></div>
+<div id="stage"><div id="load">…</div></div>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

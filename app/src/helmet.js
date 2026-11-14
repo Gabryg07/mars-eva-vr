@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Helmet visor: a dark rim around the field of view with a soft inner edge and a thin highlight, as seen from inside an EVA helmet.
 // Built as a ring with a hole (not a full-screen quad) so the centre of the view costs nothing to draw on a headset.
 import * as THREE from 'three';
@@ -24,8 +25,11 @@ export class Helmet {
     this.seed = this.glints.map(() => Math.random() * 6.28); this.dir = new THREE.Vector3();
   }
   update() {
-    const xr = this.app.renderer.xr.isPresenting; this.group.visible = xr && !this.off; if (!this.group.visible) return;   // the visor only makes sense in the headset
-    this.group.scale.set(0.318, 0.29, 1);
+    const xr = this.app.renderer.xr.isPresenting; this.group.visible = xr && !this.off; if (!this.group.visible) return;
+    const sp = this.app.player?._speed || 0;
+    const k = Math.min(1, sp / 2.2 + (this.app.player?.comfort || 0));
+    const s = 0.318 - k * 0.085;
+    this.group.scale.set(s, s * 0.91, 1);
     this.app.camera.getWorldDirection(this.dir); const yaw = Math.atan2(this.dir.x, -this.dir.z), pitch = Math.asin(this.dir.y), sun = 0.5 + 0.5 * Math.cos(yaw - 2.4);   // Sun low in the west-south-west
     this.glints.forEach((m, i) => { m.rotation.z = (i % 2 ? -0.35 : 0.45) * yaw + 0.5 * pitch + Math.sin(this.seed[i] + yaw * 1.7) * 0.12; m.material.opacity = 0.35 + 0.65 * (i % 2 ? 1 - sun : sun); });
   }

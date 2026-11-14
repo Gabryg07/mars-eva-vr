@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as THREE from 'three';
 // Dusty Martian daytime sky: tan/butterscotch, brighter towards the horizon (colour cosmetic, not measured).
 export const HORIZON = new THREE.Color(0.80, 0.63, 0.47), ZENITH = new THREE.Color(0.52, 0.38, 0.29);

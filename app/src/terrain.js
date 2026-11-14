@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Terrain rendered from real orbital elevation models (HiRISE 1 m, HiRISE 8 m, CTX 40 m rings).
 // Geometry clipmap: a handful of nested square grids follow the viewer, each twice as coarse as the one inside it.
 // Vertices are displaced on the GPU from the height textures, so the whole 29 km scene costs ~10 draw calls —
