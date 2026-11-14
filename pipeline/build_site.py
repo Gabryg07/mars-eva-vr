@@ -117,11 +117,37 @@ def dist_to(lines,reach=26.0):
     return np.clip(D*10,0,255).astype(np.uint8)
 nav=np.zeros(inner_slope.shape+(3,),np.uint8); nav[...,0]=dist_to(route); nav[...,1]=dist_to(trav); nav[...,2]=255
 Image.fromarray(nav).save(OUT+'inner_nav.png',optimize=True)
+# --- overlays from other instruments (spectral and thermal), resampled to the local frame
+overlays={}
+for key,ov in (cfg.get('overlays') or {}).items():
+    try:
+        if ov['kind']=='crism':
+            sys.path.insert(0,HERE); from fetch_crism import resample
+            d=np.load(W+ov['file']); L=d['lab']; lab=dict(lines=int(L[0]),samples=int(L[1]),scale=L[2],R=L[3],latc=L[4],lonc=L[5],L0=L[6],S0=L[7])
+            n=int(round(2*ov['half']/ov['res'])); rgb=np.zeros((n,n,3),np.float32); alpha=np.zeros((n,n),np.float32); chans=[]
+            for ch in ov['channels']:
+                v=resample(d['raw_'+ch['band']],lab,lon0,lat0,ov['half'],ov['res'],shift=ov.get('shiftM',(0,0)))
+                valid=ndimage.binary_erosion(np.isfinite(v),iterations=4); v=ndimage.median_filter(np.where(np.isfinite(v),v,np.nanmedian(v)),3)
+                lo=ch.get('lo',max(0.0,float(np.percentile(v[valid],75)))); hi=ch.get('hi',float(np.percentile(v[valid],99.7)))
+                s=np.clip((v-lo)/(hi-lo),0,1); s[~valid]=0; rgb+=s[...,None]*np.array(ch['color'],np.float32); alpha=np.maximum(alpha,s)
+                chans.append(dict(label=ch['label'],band=ch['band'],color='#%02x%02x%02x'%tuple(ch['color']),lo=round(lo,4),hi=round(hi,4)))
+            rgb=rgb/np.maximum(rgb.max(2,keepdims=True)/255.0,1.0)
+            im=np.dstack([np.clip(rgb,0,255),np.clip(alpha**0.8*255,0,255)]).astype(np.uint8)
+            Image.fromarray(im,'RGBA').save(OUT+key+'.png',optimize=True)
+            overlays[key]=dict(file=key+'.png',half=ov['half'],product=ov['product'],channels=chans,shiftM=ov.get('shiftM'))
+        elif ov['kind']=='themis':
+            v=np.load(W+ov['file']).astype(np.float32); lo,hi=np.percentile(v,[1,99]); s=np.clip((v-lo)/(hi-lo),0,1)
+            stops=np.array([[0.0,20,10,70],[0.3,120,25,125],[0.6,225,80,60],[0.85,250,170,40],[1.0,255,250,190]],np.float32)   # dark violet (cold) -> pale yellow (warm)
+            rgb=np.dstack([np.interp(s,stops[:,0],stops[:,i]) for i in (1,2,3)])
+            im=np.dstack([rgb,np.full(s.shape,235,np.float32)]).astype(np.uint8); Image.fromarray(im,'RGBA').save(OUT+key+'.png',optimize=True)
+            overlays[key]=dict(file=key+'.png',half=ov['half'],product=ov['product'])
+        print('overlay',key,overlays[key])
+    except Exception as e: print('overlay',key,'skipped:',e)
 weather=None
 try:
     ws=json.load(open(RAW+'weather.json'))['sols']; weather=ws[-1]; weather['source']='Perseverance MEDA, bollettino NASA Mars 2020 (ultimo sol disponibile)'
 except Exception as e: print('no weather',e)
-site=dict(id=cfg['id'],name=cfg['name'],lon0=lon0,lat0=lat0,radius=R,rings=rings,waypoints=wp,traverse=trav,pois=pois,route=route,legs=legs,mission=cfg.get('mission'),weather=weather,start=cfg.get('start'),
+site=dict(id=cfg['id'],name=cfg['name'],lon0=lon0,lat0=lat0,radius=R,rings=rings,waypoints=wp,traverse=trav,pois=pois,route=route,legs=legs,overlays=overlays,mission=cfg.get('mission'),weather=weather,start=cfg.get('start'),
           georefCheck=dict(n=len(dz),meanDz=float(dz.mean()),stdDz=float(dz.std())))
 json.dump(site,open(OUT+'site.json','w'),separators=(',',':'))
 print('waypoints',len(wp),'traverse segs',len(trav),'pts',sum(map(len,trav)))

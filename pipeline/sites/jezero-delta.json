@@ -206,5 +206,55 @@
   "wildcat",
   "rockytop",
   "base"
- ]
+ ],
+ "overlays": {
+  "minerals": {
+   "kind": "crism",
+   "file": "crism_mid.npz",
+   "half": 3600,
+   "res": 12,
+   "shiftM": [
+    -180,
+    204
+   ],
+   "product": "CRISM MTRDR FRT00005C5E (18 m/pixel), parametri spettrali di Viviano-Beck et al. 2014",
+   "channels": [
+    {
+     "band": "OLINDEX3",
+     "label": "olivina",
+     "color": [
+      255,
+      70,
+      50
+     ]
+    },
+    {
+     "band": "D2300",
+     "label": "argille di ferro e magnesio",
+     "color": [
+      70,
+      230,
+      90
+     ]
+    },
+    {
+     "band": "MIN2295_2480",
+     "label": "carbonati",
+     "color": [
+      70,
+      140,
+      255
+     ],
+     "lo": 0.002,
+     "hi": 0.008
+    }
+   ]
+  },
+  "thermal": {
+   "kind": "themis",
+   "file": "themis_night.npy",
+   "half": 14400,
+   "product": "Mars Odyssey THEMIS, mosaico infrarosso notturno 100 m/pixel"
+  }
+ }
 }
