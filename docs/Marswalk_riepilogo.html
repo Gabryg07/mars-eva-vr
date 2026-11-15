@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Marswalk · Riepilogo del progetto</title>
+<style>
+  @page { size: A4; margin: 18mm 17mm 18mm 17mm; }
+  @page :first { margin: 0; }
+  :root { --ink:#1d1a17; --mute:#6b625a; --rust:#b8471f; --rust2:#e07a3f; --sand:#f6efe7; --line:#e4d9cd; --cyan:#0f8fa3; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin:0; font-family: Inter, 'Liberation Sans', sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.5; }
+  h1,h2,h3 { font-family: 'Inter Display', Inter, sans-serif; line-height: 1.15; margin: 0; }
+  h2 { font-size: 19pt; font-weight: 700; color: var(--ink); margin: 0 0 3mm; padding-top: 1mm; }
+  h2 .n { color: var(--rust); font-weight: 600; margin-right: 2.5mm; }
+  h3 { font-size: 11.5pt; font-weight: 650; margin: 5mm 0 1.5mm; color: var(--rust); }
+  p { margin: 0 0 2.6mm; }
+  ul { margin: 0 0 2.6mm; padding-left: 5mm; }
+  li { margin-bottom: 1.2mm; }
+  b, strong { font-weight: 650; }
+  .lead { font-size: 11.5pt; color: #3a332d; }
+  section { break-before: page; }
+  section.cont { break-before: auto; margin-top: 8mm; }
+  figure { margin: 3mm 0 4mm; break-inside: avoid; }
+  figure img { width: 100%; display: block; border-radius: 2.5mm; }
+  figcaption { font-size: 8.4pt; color: var(--mute); margin-top: 1.5mm; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+  .card { background: var(--sand); border: 0.3mm solid var(--line); border-radius: 2.5mm; padding: 3mm 3.6mm; break-inside: avoid; }
+  .card h3 { margin-top: 0; }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  .note { border-left: 1.2mm solid var(--rust2); background: #fdf6ef; padding: 2.5mm 4mm; border-radius: 0 2mm 2mm 0; font-size: 9.4pt; break-inside: avoid; margin: 3mm 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.6pt; margin: 2mm 0 4mm; }
+  th { text-align: left; font-weight: 650; color: #fff; background: var(--ink); padding: 1.8mm 2.2mm; }
+  td { padding: 1.6mm 2.2mm; border-bottom: 0.25mm solid var(--line); vertical-align: top; }
+  tr { break-inside: avoid; }
+  tbody tr:nth-child(even) td { background: #fbf8f4; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin: 4mm 0 5mm; }
+  .kpi { border: 0.3mm solid var(--line); border-radius: 2.5mm; padding: 3mm; }
+  .kpi .v { font-family: 'Inter Display', Inter; font-size: 17pt; font-weight: 700; color: var(--rust); line-height: 1.1; }
+  .kpi .l { font-size: 8.2pt; color: var(--mute); }
+  .mono { font-family: 'JetBrains Mono', monospace; font-size: 8.6pt; }
+  kbd { font-family: 'JetBrains Mono', monospace; font-size: 8pt; background: #efe7de; border: 0.25mm solid #d8cabb; border-radius: 1mm; padding: 0 1.2mm; }
+  .steps { counter-reset: s; list-style: none; padding: 0; }
+  .steps li { counter-increment: s; position: relative; padding-left: 9mm; margin-bottom: 2.2mm; }
+  .steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 6mm; height: 6mm; border-radius: 50%; background: var(--rust); color: #fff; font-size: 8.5pt; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+
+  /* cover */
+  .cover { height: 297mm; width: 210mm; position: relative; overflow: hidden; background: #2a1810; color: #fff; break-after: page; }
+  .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 52% 50%; }
+  .cover .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,10,6,.86) 0%, rgba(20,10,6,.35) 38%, rgba(20,10,6,.25) 60%, rgba(20,10,6,.9) 100%); }
+  .cover .top { position: absolute; left: 18mm; right: 18mm; top: 22mm; }
+  .cover .eyebrow { font-size: 9.5pt; letter-spacing: .18em; text-transform: uppercase; color: #ffb27a; font-weight: 600; }
+  .cover h1 { font-size: 54pt; font-weight: 800; letter-spacing: -.02em; margin: 3mm 0 2mm; }
+  .cover .sub { font-size: 15pt; font-weight: 400; max-width: 150mm; color: #f3e6da; }
+  .cover .bottom { position: absolute; left: 18mm; right: 18mm; bottom: 20mm; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6mm; font-size: 9pt; color: #f3e6da; }
+  .cover .bottom b { display: block; color: #ffb27a; font-size: 7.8pt; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 1mm; font-weight: 600; }
+  .toc { columns: 2; column-gap: 8mm; font-size: 10pt; margin: 4mm 0 0; padding: 0; list-style: none; }
+  .toc li { margin-bottom: 1.6mm; }
+  .toc span { color: var(--rust); font-weight: 650; display: inline-block; width: 7mm; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <img src="img/base.jpg" alt="">
+  <div class="shade"></div>
+  <div class="top">
+    <div class="eyebrow">NASA Space Apps Challenge 2026 · Interplanetary Survival Guide: Martian Map</div>
+    <h1>Marswalk</h1>
+    <div class="sub">Un simulatore in realtà virtuale per provare un'uscita a piedi su Marte, sul terreno vero del cratere Jezero, prima di farla davvero.</div>
+  </div>
+  <div class="bottom">
+    <div><b>Demo</b>gabryg07.github.io/mars-eva-vr</div>
+    <div><b>Codice</b>github.com/Gabryg07/mars-eva-vr</div>
+    <div><b>Data</b>15 novembre 2026 · Meta Quest 2 e PC</div>
+  </div>
+</div>
+
+<!-- 1 -->
+<section style="break-before:auto">
+  <h2><span class="n">1</span>In breve</h2>
+  <p class="lead">Marswalk mette chi lo usa nei panni di un astronauta della prima base su Marte. Si esce dall'airlock e si cammina su una ricostruzione in scala 1:1 del fronte del delta del cratere Jezero, lo stesso terreno che il rover Perseverance sta esplorando dal 2021. Tutto ciò che si vede per terra, dalle colline ai sassi più grandi, viene da dati reali delle sonde NASA.</p>
+  <div class="kpis">
+    <div class="kpi"><div class="v">1 m</div><div class="l">risoluzione del terreno vicino (HiRISE)</div></div>
+    <div class="kpi"><div class="v">29 km</div><div class="l">lato dell'area ricostruita, su tre anelli di dettaglio</div></div>
+    <div class="kpi"><div class="v">10+</div><div class="l">set di dati NASA e USGS usati</div></div>
+    <div class="kpi"><div class="v">3</div><div class="l">modalità: Missione EVA, Demo campioni, Solo dati</div></div>
+  </div>
+  <h3>Indice</h3>
+  <ul class="toc">
+    <li><span>2</span>Perché l'abbiamo fatto</li>
+    <li><span>3</span>Dove è ambientato</li>
+    <li><span>4</span>Come funziona</li>
+    <li><span>5</span>Le tre modalità</li>
+    <li><span>6</span>La base marziana</li>
+    <li><span>7</span>Demo «Operazione deposito»</li>
+    <li><span>8</span>Il modello di simulazione</li>
+    <li><span>9</span>Da dove vengono i dati</li>
+    <li><span>10</span>Comandi</li>
+    <li><span>11</span>Limiti e approssimazioni</li>
+    <li><span>12</span>Sviluppi futuri e crediti</li>
+  </ul>
+
+  <section class="cont">
+  <h2><span class="n">2</span>Perché l'abbiamo fatto</h2>
+  <p>La sfida <b>Interplanetary Survival Guide: Martian Map</b> chiede una mappa o un'interfaccia che aiuti un astronauta a muoversi in sicurezza durante un'attività extraveicolare (EVA): una zona molto circoscritta, almeno tre tipi di dati NASA, attenzione alla sicurezza, un percorso che eviti gli ostacoli e le foto dal punto di vista dei rover.</p>
+  <p>Abbiamo scelto la realtà virtuale perché un'uscita su Marte si prepara meglio <b>camminandoci dentro</b> che guardando una mappa. In VR si capisce subito quanto è ripida una salita, quanto è lontana la base, cosa si vede dalla cima di una collina. Le missioni Apollo hanno fatto qualcosa di simile con plastici e prove sul campo; noi usiamo i dati delle sonde in orbita per farlo prima che qualcuno metta piede su Marte.</p>
+  <div class="grid2">
+    <div class="card"><h3>A cosa serve</h3>
+      <ul>
+        <li><b>Pianificare</b> un'uscita: tappe, distanze, pendenze, ossigeno, tempo di rientro.</li>
+        <li><b>Provarla</b> in anticipo, con l'interfaccia (HUD) che avrebbe nel casco.</li>
+        <li><b>Capire i dati</b>: minerali, quota, infrarosso e pericoli sovrapposti al terreno.</li>
+      </ul></div>
+    <div class="card"><h3>Per chi</h3>
+      <ul>
+        <li>Chi progetta le missioni e vuole un banco di prova visivo.</li>
+        <li>Scuole e musei: un modo concreto per capire Marte e le missioni NASA.</li>
+        <li>Chiunque abbia un visore o un PC: è un sito web, non serve installare nulla.</li>
+      </ul></div>
+  </div>
+  </section>
+</section>
+
+<!-- 3 -->
+<section>
+  <h2><span class="n">3</span>Dove è ambientato</h2>
+  <p>Il cratere <b>Jezero</b> (circa 18,4° Nord, 77,4° Est) è largo 45 km. Circa 3,5 miliardi di anni fa ospitava un lago, alimentato da un fiume che ha lasciato un grande delta a ventaglio sul bordo occidentale. Le argille e i carbonati del delta sono tra i posti migliori su Marte per cercare tracce di vita antica: per questo Perseverance è atterrato qui il <b>18 febbraio 2021</b>.</p>
+  <p>Marswalk ricostruisce la zona del <b>fronte del delta</b>, intorno a <b>Three Forks</b> e Hawksbill Gap. È qui che, tra dicembre 2022 e gennaio 2023, Perseverance ha lasciato a terra dieci provette di campioni, il primo deposito di campioni su un altro pianeta, in attesa di una futura missione di ritorno sulla Terra.</p>
+  <table>
+    <thead><tr><th>Anello</th><th>Area</th><th>Risoluzione</th><th>Dati</th></tr></thead>
+    <tbody>
+      <tr><td>Vicino</td><td>1,6 × 1,6 km intorno alla base</td><td>1 m (immagine 25 cm)</td><td>HiRISE, modello del terreno e foto</td></tr>
+      <tr><td>Medio</td><td>7,2 × 7,2 km</td><td>8 m</td><td>HiRISE</td></tr>
+      <tr><td>Lontano</td><td>28,8 × 28,8 km, fino al bordo del cratere</td><td>40 m</td><td>CTX</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>Nota.</b> La posizione della base è una scelta di scenario: nessuna agenzia ha mai proposto una base a Jezero. L'abbiamo messa vicino al deposito di Three Forks perché lì il terreno è pianeggiante e le tappe scientifiche sono a distanza di passeggiata.</div>
+  <h3>Il percorso di Perseverance</h3>
+  <p>Sul terreno è tracciato in azzurro il percorso reale del rover, con le sue posizioni ufficiali sol per sol. Le sei tappe della missione sono luoghi dove Perseverance si è davvero fermato a lavorare, e in ognuna si possono vedere le foto che il rover ha scattato proprio da lì. Una scia viola mostra il volo 42 di Ingenuity, l'elicottero che ha volato su questa stessa zona.</p>
+</section>
+
+<!-- 4 -->
+<section>
+  <h2><span class="n">4</span>Come funziona</h2>
+  <p>Marswalk è un'applicazione <b>WebXR</b>: si apre come un normale sito nel browser del Meta Quest 2 (o su un PC con mouse e tastiera) e con un clic entra in realtà virtuale. È scritto in JavaScript con <b>Three.js</b> e impacchettato con <b>Vite</b>; il risultato è un sito statico pubblicato su GitHub Pages.</p>
+  <ol class="steps">
+    <li><b>Scaricare i dati.</b> Script Python (<span class="mono">pipeline/</span>) scaricano da USGS, PDS e NASA terreno, immagini, minerali, percorso del rover e meteo.</li>
+    <li><b>Ritagliarli per il sito.</b> I dati vengono ritagliati sull'area, riproiettati in metri e tagliati in tessere a più livelli di dettaglio. Tutto ciò che dipende dal luogo sta in <span class="mono">pipeline/sites/jezero-delta.json</span>: cambiando quel file l'app funziona per un'altra zona di Marte.</li>
+    <li><b>Disegnare il terreno.</b> Il terreno vicino è a 1 m, quello lontano a risoluzione più bassa, così il visore resta fluido.</li>
+    <li><b>Simulare l'uscita.</b> Ogni passo aggiorna ossigeno, energia, dose di radiazione e tempo di rientro secondo un modello dichiarato (sezione 8). Se si supera un limite, l'HUD dà l'allarme di rientro.</li>
+  </ol>
+  <h3>Cosa si vede nel casco</h3>
+  <div class="grid2">
+    <div class="card"><h3>HUD di sopravvivenza</h3><p>Ora locale marziana, ossigeno e autonomia, tempo per tornare alla base, dose di radiazione, pendenza sotto i piedi, allarmi per ossigeno e tramonto.</p></div>
+    <div class="card"><h3>Cinque livelli di dati</h3><p>Immagine, pendenza e pericoli, quota, minerali (CRISM) e infrarosso notturno (THEMIS), sovrapposti al terreno con il tasto <kbd>L</kbd> o il pulsante A.</p></div>
+    <div class="card"><h3>Vista dall'alto</h3><p>Si sale in quota per vedere tutta la zona, pianificare e poi tornare esattamente nello stesso punto.</p></div>
+    <div class="card"><h3>Display al polso</h3><p>Legenda, mappa, fonti dei dati e riepilogo dell'uscita, consultabili senza togliere il visore.</p></div>
+  </div>
+
+  <section class="cont">
+  <h2><span class="n">5</span>Le tre modalità</h2>
+  <p>Dal menu iniziale si sceglie la lingua (italiano o inglese), il volume dei suoni di Marte e una delle tre modalità.</p>
+  <table>
+    <thead><tr><th style="width:24%">Modalità</th><th>Cosa si fa</th></tr></thead>
+    <tbody>
+      <tr><td><b>Inizia la missione</b></td><td>L'uscita EVA-1 «Three Forks»: sei tappe reali (Three Forks, Cape Nukshak, Yori Pass, Wildcat Ridge, Rocky Top e ritorno) su un percorso sicuro di 2,2 km, calcolato come cammino a costo minimo sulle pendenze HiRISE in modo da evitare i tratti oltre il limite della tuta. In ogni tappa una scheda spiega cosa c'è da vedere, con le foto di Perseverance.</td></tr>
+      <tr><td><b>Demo campioni</b></td><td>Un gioco breve di recupero dei campioni (sezione 7).</td></tr>
+      <tr><td><b>Solo dati</b></td><td>Si parte dentro la base, nelle sale dei dati e delle missioni, senza uscire: utile per presentazioni e per chi non ha spazio per muoversi.</td></tr>
+    </tbody>
+  </table>
+  </section>
+</section>
+
+<!-- 6 -->
+<section>
+  <h2><span class="n">6</span>La base marziana</h2>
+  <p>La base è composta da quattro moduli a cupola collegati da corridoi, con un aspetto da stazione spaziale: nervature strutturali, luci LED, portali illuminati e un airlock con rampa. È un'ambientazione inventata da noi, non un progetto NASA, ma ogni oggetto all'interno è legato a dati o fatti reali.</p>
+  <div class="grid2">
+    <div class="card"><h3>Modulo principale</h3><p>L'airlock, le due tute in esposizione (la <b>ACES</b> arancione e il prototipo <b>NASA Z-2</b>, con le tecnologie studiate per le tute marziane) e il banco di lavoro.</p></div>
+    <div class="card"><h3>Sala dati</h3><p>Calendario sol per sol dell'attività di Perseverance con mappa, plastico interrogabile della zona, registro dei campioni, profilo del percorso, grafico del meteo MEDA, catalogo dei dati e download in GeoJSON e CSV.</p></div>
+    <div class="card"><h3>Sala missioni</h3><p>Un globo di Marte che ruota sotto un soffitto stellato, con i dieci lander e rover alle coordinate reali, i percorsi dei rover, le orbite delle sonde con inclinazioni reali e i sorvoli storici.</p></div>
+    <div class="card"><h3>Cabina dell'equipaggio</h3><p>Letto, scrivania con schermo di stato, armadietto, parete degli attrezzi (chiavi, cacciaviti, trapano, multimetro, kit di riparazione della tuta) e un fotobioreattore ad alghe.</p></div>
+  </div>
+  <figure><img src="img/cabina.jpg" alt="" style="height:78mm;object-fit:cover;object-position:50% 70%"><figcaption>La cabina dell'equipaggio: il fotobioreattore con le colonne di alga Chlorella al centro, la parete degli attrezzi a destra.</figcaption></figure>
+  <h3>Ossigeno dalle alghe</h3>
+  <p>Una persona consuma circa 0,84 kg di ossigeno al giorno. Il fotobioreattore della cabina (otto colonne di Chlorella sotto luci di crescita) produce qualche decina di grammi al giorno: da solo non basta, ed è proprio quello che spiega il pannello vicino. Si ispira al programma <b>MELiSSA</b> dell'ESA, che studia un ciclo chiuso di supporto vitale, e lo confronta con <b>MOXIE</b>, l'esperimento di Perseverance che ha prodotto 122 g di ossigeno dall'atmosfera marziana in 16 prove.</p>
+</section>
+
+<section>
+  <figure style="margin-top:0"><img src="img/missioni.jpg" alt=""><figcaption>La sala missioni: il globo con le sonde atterrate e in orbita, sotto la cupola stellata.</figcaption></figure>
+  <h3>All'esterno</h3>
+  <ul>
+    <li><b>Campo solare</b> di 18 pannelli accanto alla base, con un cartello che stima la produzione partendo dal dato reale di InSight (circa 4,6 kWh per sol da 9,6 m² di pannelli) e ricorda i due problemi veri: la polvere e le tempeste, per cui la NASA studia anche i piccoli reattori Kilopower.</li>
+    <li><b>Antenne</b>: un traliccio di 7 m con antenne direttive, una parabola ad alto guadagno, antenne a stilo sulle cupole e un albero meteo.</li>
+    <li><b>Mostra NASA</b> dietro la base: i modelli 3D di diciassette missioni verso Marte, con un pannello sulle missioni perdute.</li>
+    <li>Il rover <b>Perseverance</b> che segue l'astronauta, il volo 42 di <b>Ingenuity</b> riprodotto nel cielo con il suo beacon viola, e il punto del selfie di Three Forks.</li>
+    <li>Il <b>suono del vento</b>: quattro registrazioni vere del microfono SuperCam di Perseverance, in loop solo quando si è fuori. Gran parte dell'energia del vento marziano sta sotto i 100 Hz, quindi su altoparlanti piccoli si sente come un brontolio basso: è davvero così.</li>
+  </ul>
+</section>
+
+<!-- 7 -->
+<section>
+  <h2><span class="n">7</span>Demo «Operazione deposito»</h2>
+  <p class="lead">Il compito: recuperare le dieci provette che Perseverance ha lasciato al deposito di Three Forks e riportarle nella base, come prova generale della futura missione di ritorno dei campioni (Mars Sample Return, un progetto ancora in discussione).</p>
+  <figure><img src="img/demo.jpg" alt=""><figcaption>Una provetta a terra, segnata dall'anello dorato, accanto al percorso reale del rover.</figcaption></figure>
+  <div class="grid2">
+    <div>
+      <h3>Come si gioca</h3>
+      <ol class="steps">
+        <li>Dal menu si sceglie <b>Demo campioni</b>. Un pannello spiega la missione.</li>
+        <li>Si esce dall'airlock e si segue il raggio dorato fino al deposito.</li>
+        <li>Lo scanner al polso indica la provetta più vicina e suona sempre più veloce man mano che ci si avvicina.</li>
+        <li>Si tiene premuto il grilletto (o <kbd>E</kbd>, o il mouse) per 1,5 secondi: è il controllo del sigillo. Una scheda dice cosa contiene la provetta.</li>
+        <li>Il contenitore porta 5 provette: servono due viaggi. Valgono solo quelle portate dentro la base.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Perché è realistico</h3>
+      <ul>
+        <li>Ogni provetta sta dove stava il rover nel sol in cui l'ha lasciata cadere (posizioni ufficiali, entro circa un metro).</li>
+        <li>Il contenuto è quello vero: roccia ignea del fondo del cratere, roccia fangosa di Wildcat Ridge, regolite, un campione d'aria e la provetta testimone per la contaminazione.</li>
+        <li>Ossigeno e distanza percorsa si consumano come nella missione.</li>
+        <li>Alla fine un rapporto dà da una a tre stelle: tre stelle se si chiude in meno di 12 minuti.</li>
+      </ul>
+      <div class="note">La finalità è far capire perché una missione su Marte si pianifica: la capacità limitata del contenitore e l'ossigeno costringono a scegliere l'ordine dei recuperi e il percorso, come farebbe un vero astronauta.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section>
+  <h2><span class="n">8</span>Il modello di simulazione</h2>
+  <p>I numeri della simulazione sono ipotesi dichiarate, tutte raccolte in <span class="mono">pipeline/sites/jezero-delta.json</span>, così chiunque può controllarle o cambiarle.</p>
+  <table>
+    <thead><tr><th style="width:30%">Grandezza</th><th style="width:22%">Valore</th><th>Da dove viene</th></tr></thead>
+    <tbody>
+      <tr><td>Velocità di cammino per i consumi</td><td>0,7 m/s in piano</td><td>Funzione di Tobler riscalata: rallenta in salita e in discesa ripida. Ordine di grandezza delle camminate Apollo. Il giocatore cammina più veloce (1,6 m/s) per comodità.</td></tr>
+      <tr><td>Consumo metabolico</td><td>150 W + 200 J/m</td><td>A riposo in tuta, più il cammino in piano e il lavoro contro la gravità (massa con tuta 260 kg, rendimento 25%).</td></tr>
+      <tr><td>Ossigeno</td><td>0,6 kg, riserva 20%</td><td>Convertito dal consumo energetico: 20,1 kJ per litro di O₂.</td></tr>
+      <tr><td>Limiti di pendenza</td><td>10°, 20°, 30°</td><td>Fasce facile, faticosa, vietata per la tuta. Il percorso sicuro evita le pendenze oltre il limite.</td></tr>
+      <tr><td>Radiazione</td><td>0,64 mSv al giorno</td><td>Strumento RAD di Curiosity nel cratere Gale (Hassler et al., Science 2014). Valore di riferimento, non misurato a Jezero.</td></tr>
+      <tr><td>Gravità</td><td>3,71 m/s²</td><td>Valore standard di Marte.</td></tr>
+      <tr><td>Ora e tramonto</td><td>Ora solare locale</td><td>Calcolata per il sol di partenza; dati meteo reali di MEDA.</td></tr>
+    </tbody>
+  </table>
+  <h3>Verifiche sui dati</h3>
+  <ul>
+    <li>Sulle 132 posizioni del rover dentro l'area, la quota registrata dal rover e quella del nostro terreno differiscono in media di <b>1 cm</b> (deviazione standard 7 cm).</li>
+    <li>La mappa dei minerali CRISM era spostata di <b>272 m</b> rispetto alle immagini: l'abbiamo riallineata per correlazione della riflettanza a 770 nm (correlazione da 0,01 a 0,62).</li>
+  </ul>
+</section>
+
+<!-- 9 -->
+<section>
+  <h2><span class="n">9</span>Da dove vengono i dati</h2>
+  <p>Tutti i dati sono pubblici e vengono da NASA, USGS e dal Planetary Data System (PDS). Nessun dato è stato generato con intelligenza artificiale.</p>
+  <table>
+    <thead><tr><th style="width:30%">Dato</th><th style="width:30%">Missione e strumento</th><th>Fonte</th></tr></thead>
+    <tbody>
+      <tr><td>Modello del terreno a 1 m e immagine a 25 cm</td><td>Mars Reconnaissance Orbiter, HiRISE</td><td>USGS Astrogeology, mosaici Mars 2020 Terrain Relative Navigation</td></tr>
+      <tr><td>Terreno e immagine di contesto (20 m, 6 m)</td><td>Mars Reconnaissance Orbiter, CTX</td><td>USGS Astrogeology, mosaici Mars 2020 TRN</td></tr>
+      <tr><td>Minerali (olivina, argille, carbonati), 18 m</td><td>Mars Reconnaissance Orbiter, CRISM (FRT00005C5E)</td><td>PDS Geosciences Node, prodotti MTRDR</td></tr>
+      <tr><td>Infrarosso notturno, 100 m</td><td>Mars Odyssey, THEMIS</td><td>USGS Astrogeology, mosaico globale</td></tr>
+      <tr><td>Percorso, tappe e campioni del rover</td><td>Mars 2020 Perseverance</td><td>NASA/JPL-Caltech, mappa «Where is Perseverance» (waypoint ufficiali)</td></tr>
+      <tr><td>Foto nelle tappe</td><td>Perseverance, Mastcam-Z e Navcam</td><td>NASA/JPL-Caltech/ASU, immagini raw</td></tr>
+      <tr><td>Meteo (temperatura, pressione)</td><td>Perseverance, MEDA</td><td>NASA/JPL-Caltech/CAB</td></tr>
+      <tr><td>Voli di Ingenuity</td><td>Mars 2020 Ingenuity</td><td>NASA/JPL-Caltech, registro dei voli (mappe MMGIS)</td></tr>
+      <tr><td>Suono del vento</td><td>Perseverance, microfono SuperCam</td><td>PDS Geosciences Node, registrazioni passive calibrate (sol 4, 685, 690, 697)</td></tr>
+      <tr><td>Percorsi di Spirit e Opportunity</td><td>Mars Exploration Rover, posizioni dei siti</td><td>PDS, archivio Rover Motion Counter (MER1, MER2)</td></tr>
+      <tr><td>Percorso di Curiosity</td><td>Mars Science Laboratory</td><td>NASA/JPL-Caltech, waypoint MMGIS</td></tr>
+      <tr><td>Mappa del globo</td><td>Viking Orbiter</td><td>NASA/USGS, mosaico MDIM 2.1</td></tr>
+      <tr><td>Dose di radiazione</td><td>Curiosity, RAD</td><td>Hassler et al., Science 2014</td></tr>
+      <tr><td>Modelli 3D di sonde e tute</td><td>Viking, Mars Global Surveyor, Odyssey, MER, MRO, Curiosity, MAVEN, InSight, Perseverance, Ingenuity, tute ACES e Z-2</td><td>NASA 3D Resources (nasa3d.arc.nasa.gov), compressi per il visore</td></tr>
+      <tr><td>Selfie di Three Forks</td><td>Perseverance, WATSON</td><td>NASA/JPL-Caltech/MSSS, PIA25681</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 10 -->
+<section>
+  <h2><span class="n">10</span>Comandi</h2>
+  <div class="grid2">
+    <div class="card"><h3>Meta Quest 2</h3>
+      <ul>
+        <li><b>Stick sinistro</b>: cammina (grilletto laterale per andare veloce).</li>
+        <li><b>Stick destro</b>: avanti per il teletrasporto, ai lati per girarsi.</li>
+        <li><b>Grilletto</b>: sceglie nel menu e raccoglie le provette nella demo.</li>
+        <li><b>Grilletto destro</b>: vista dall'alto.</li>
+        <li><b>Grilletto laterale destro</b>: display al polso.</li>
+        <li><b>A</b> livello dati · <b>B</b> traccia del rover · <b>X</b> fonti · <b>Y</b> ricomincia.</li>
+        <li><b>Grilletti laterali sul globo</b>: prenderlo; con due mani si ridimensiona.</li>
+      </ul></div>
+    <div class="card"><h3>PC</h3>
+      <ul>
+        <li>Clic sul menu, poi clic per catturare il mouse.</li>
+        <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> cammina · <kbd>Shift</kbd> veloce.</li>
+        <li><kbd>L</kbd> livello dati · <kbd>I</kbd> display al polso · <kbd>M</kbd> vista dall'alto.</li>
+        <li><kbd>T</kbd> traccia del rover · <kbd>C</kbd> fonti dei dati.</li>
+        <li><kbd>G</kbd> prende il globo, <kbd>+</kbd> / <kbd>−</kbd> scala.</li>
+        <li><kbd>E</kbd> o clic tenuto: raccoglie una provetta nella demo.</li>
+        <li><kbd>R</kbd> ricomincia.</li>
+      </ul></div>
+  </div>
+
+  <section class="cont">
+  <h2><span class="n">11</span>Limiti e approssimazioni</h2>
+  <p>Abbiamo cercato di essere onesti su ciò che è dato vero e ciò che è stimato o inventato:</p>
+  <ul>
+    <li>La <b>base</b>, la cabina e la loro posizione sono uno scenario nostro, non un progetto NASA.</li>
+    <li>Il <b>volo di Ingenuity</b> è ricostruito in linea retta tra i punti di partenza e arrivo; il punto esatto del selfie è stimato.</li>
+    <li>Sul globo i <b>percorsi dei rover</b> sono ingranditi 40 volte (45 km reali sarebbero circa 2 cm) e le altezze delle orbite non sono in scala.</li>
+    <li>Le <b>provette</b> della demo sono entro circa un metro dalla posizione vera.</li>
+    <li>I numeri dell'ossigeno e del consumo sono ordini di grandezza ragionevoli, non dati di una tuta reale; la radiazione è misurata a Gale, non a Jezero.</li>
+    <li>I colori delle mappe TES nella sala dati e i testi scientifici delle tappe vanno ricontrollati dalla squadra.</li>
+    <li>L'esperienza è stata provata con un Quest 2 emulato nel browser; manca ancora la prova su un visore vero.</li>
+  </ul>
+  </section>
+</section>
+
+<!-- 12 -->
+<section>
+  <h2><span class="n">12</span>Sviluppi futuri</h2>
+  <ul>
+    <li><b>Altri siti</b>: la pipeline è già pensata per cambiare zona con un solo file di configurazione (per esempio il cratere Gale di Curiosity).</li>
+    <li><b>Uscite in coppia</b>: due astronauti nella stessa scena, con un controllore dalla base.</li>
+    <li><b>Più scenari di gioco</b>: guasto della tuta, tempesta di polvere, soccorso di un compagno, manutenzione del campo solare.</li>
+    <li><b>Uso didattico</b>: percorsi guidati per le scuole e una modalità museo da usare senza visore.</li>
+    <li>Aggiornare in automatico percorso e foto di Perseverance man mano che la NASA li pubblica.</li>
+  </ul>
+
+  <section class="cont">
+  <h2><span class="n">13</span>Crediti</h2>
+  <p>Progetto della squadra per il NASA Space Apps Challenge 2026.</p>
+  <ul>
+    <li><b>Dati e immagini</b>: NASA, JPL-Caltech, USGS Astrogeology, University of Arizona (HiRISE), Malin Space Science Systems (CTX), Johns Hopkins APL (CRISM), Arizona State University (THEMIS, Mastcam-Z), Centro de Astrobiología (MEDA), Los Alamos National Laboratory e IRAP (SuperCam), Planetary Data System.</li>
+    <li><b>Modelli 3D</b>: NASA 3D Resources.</li>
+    <li><b>Software</b>: Three.js, Vite, librerie Python open source (rasterio, NumPy, SciPy, scikit-image, Pillow); prove con Playwright e l'emulatore WebXR IWER di Meta.</li>
+    <li><b>Uso dell'intelligenza artificiale</b>: il codice è stato scritto con l'assistenza di Claude (Anthropic). I dati sono solo dati pubblici NASA e USGS.</li>
+  </ul>
+  <div class="note" style="margin-top:6mm">Demo: <b>gabryg07.github.io/mars-eva-vr</b> · Codice: <b>github.com/Gabryg07/mars-eva-vr</b><br>Sul Quest 2: aprire il link nel browser del visore e premere il pulsante «ENTER VR» in basso.</div>
+  </section>
+</section>
+
+</body>
+</html>
