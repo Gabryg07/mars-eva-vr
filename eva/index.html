@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marswalk — EVA su Marte</title>
+<style>html,body{color:#f4e3d3;background:#140c09;height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}button,input{font:inherit;color:inherit}#menu{box-sizing:border-box;grid-template-columns:1fr;gap:28px;max-width:1100px;min-height:100%;margin:0 auto;padding:28px 20px 40px;display:grid}@media (min-width:900px){#menu{grid-template-columns:1fr 1fr;align-items:center;min-height:100vh}}.kicker{letter-spacing:.22em;text-transform:uppercase;color:#ff9a52;margin:0;font-size:13px}h1{margin:8px 0;font-size:clamp(40px,6vw,64px);line-height:.95}.lead{color:#d9c3b0;max-width:38rem;line-height:1.45}.card{background:#1c120e;border:1px solid #fff2;border-radius:16px;flex-direction:column;gap:12px;padding:14px;display:flex}.row{gap:8px;display:flex}button{cursor:pointer;background:0 0;border:1px solid #fff2;border-radius:999px;min-height:44px;padding:8px 14px}button.on,button.primary{color:#140c09;background:#ff9a52;border-color:#ff9a52;font-weight:700}button.primary{width:100%;min-height:48px;font-size:18px}label{color:#d9c3b0;flex-direction:column;gap:6px;font-size:14px;display:flex}input[type=range]{width:100%}#globe{touch-action:none;background:#0c0806;border:1px solid #fff2;border-radius:16px;height:320px}@media (min-width:900px){#globe{height:460px}}.muted{color:#d9c3b0;font-size:14px;line-height:1.4}.help{gap:10px;display:grid}@media (min-width:700px){.help{grid-template-columns:1fr 1fr}}.help article{border:1px solid #fff2;border-radius:12px;padding:12px}.help h2{color:#ffb37a;margin:0 0 4px;font-size:16px}#stage{background:#140c09;display:none;position:fixed;inset:0}#stage canvas{display:block}#load{background:#000a;border-radius:10px;padding:10px 14px;font-size:14px;position:fixed;bottom:24px;left:50%;transform:translate(-50%)}</style>
+  <script type="module" crossorigin src="./assets/index-zsw2ScHD.js"></script>
+</head>
+<body>
+<div id="menu">
+  <section>
+    <p class="kicker" id="kicker"></p>
+    <h1 id="title"></h1>
+    <p class="lead" id="lead"></p>
+    <div class="card">
+      <div>
+        <p class="muted" id="langLabel"></p>
+        <div class="row">
+          <button type="button" id="btnIt" class="on">Italiano</button>
+          <button type="button" id="btnEn">English</button>
+        </div>
+      </div>
+      <label id="sensLabel">Sensibilità
+        <input id="sens" type="range" min="0.6" max="1.8" step="0.05" value="1">
+      </label>
+      <button type="button" id="btnRover"></button>
+    </div>
+    <p><button type="button" class="primary" id="start"></button></p>
+    <div class="help">
+      <article><h2 id="questTitle"></h2><p class="muted" id="questBody"></p></article>
+      <article><h2 id="pcTitle"></h2><p class="muted" id="pcBody"></p></article>
+    </div>
+  </section>
+  <section>
+    <div id="globe"></div>
+    <p><b id="globeTitle"></b><br><span class="muted" id="globeHelp"></span></p>
+    <label id="scaleLabel">Scala
+      <input id="scale" type="range" min="0.35" max="4" step="0.05" value="1">
+    </label>
+    <p class="muted" id="scaleRead">1.0×</p>
+  </section>
+</div>
+<div id="stage"><div id="load">…</div></div>
+</body>
+</html>

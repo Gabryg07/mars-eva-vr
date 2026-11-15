@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marswalk — prova generale di un'uscita su Marte</title>
+<style>html,body{color:#f4e3d3;background:#1a0f0a;height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden}canvas{display:block}#boot{z-index:10;text-align:center;background:radial-gradient(at 50% 60%,#5a2f1c 0%,#1a0f0a 70%);flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:24px;transition:opacity .6s;display:flex;position:fixed;inset:0}#boot h1{letter-spacing:.04em;margin:0;font-size:clamp(28px,5vw,54px);font-weight:700}#boot p{opacity:.85;max-width:640px;margin:0;line-height:1.45}#bar{background:#fff2;border-radius:3px;width:min(420px,70vw);height:6px;overflow:hidden}#bar i{background:#ff9a52;width:0;height:100%;transition:width .2s;display:block}#msg{opacity:.7;min-height:1.2em;font-size:13px}#help{pointer-events:none;background:#0008;border-radius:8px;max-width:340px;padding:8px 10px;font-size:12px;line-height:1.5;position:fixed;bottom:12px;left:12px}#help b{color:#ffb37a}#legend{pointer-events:none;background:#0009;border-radius:8px;flex-direction:column;max-width:260px;padding:10px 12px;font-size:13px;line-height:1.5;display:flex;position:fixed;top:12px;right:12px}#legend:empty{display:none}#legend b{font-size:15px}#legend small{opacity:.7;margin-bottom:4px}#legend i{border-radius:2px;width:14px;height:10px;margin-right:8px;display:inline-block}</style>
+  <script type="module" crossorigin src="./assets/index-C8uRFaLx.js"></script>
+</head>
+<body>
+<div id="boot">
+  <h1>MARSWALK</h1>
+  <p id="tag">Prova generale di un'uscita a piedi su Marte: terreno e immagini reali delle missioni NASA, cratere Jezero.</p>
+  <div id="bar"><i></i></div>
+  <div id="msg">Caricamento dei dati orbitali…</div>
+</div>
+<div id="help"></div>
+<div id="reticle" aria-hidden="true"></div>
+<style>#reticle{pointer-events:none;z-index:20;border:2px solid #fff;border-radius:50%;width:22px;height:22px;margin:-11px 0 0 -11px;display:none;position:fixed;top:50%;left:50%;box-shadow:0 0 0 1px #0009,inset 0 0 0 1px #0009}#reticle:after{content:"";background:#7fe0ff;border-radius:50%;width:4px;height:4px;margin:-2px 0 0 -2px;position:absolute;top:50%;left:50%}body.scene #reticle{display:block}body.xr #reticle{display:none}</style>
+<div id="legend"></div>
+</body>
+</html>

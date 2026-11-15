@@ -1,0 +1,215 @@
+{
+  "source": "NASA Mars 2020 raw images feed (mars.nasa.gov/rss) + frame gi\u00e0 nel sito",
+  "stops": {
+    "threeforks": [
+      {
+        "file": "photos/threeforks.jpg",
+        "imageid": "ZL0_0663_0725801909_928EBY_N0320378ZCAM08657_1100LMJ",
+        "sol": 663,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "Frame selezionato dal progetto (raw NASA Mars 2020)",
+        "w": 1024,
+        "h": 746
+      },
+      {
+        "file": "photos/threeforks-x1.jpg",
+        "imageid": "ZL0_0663_0725814938_769EBY_N0320482ZCAM07114_0340LMJ",
+        "sol": 663,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on Jan. 1, 2023 (Sol 663) at the local mean so",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/threeforks-x2.jpg",
+        "imageid": "ZR0_0663_0725794157_818EBY_N0320378ZCAM08651_1100LMJ",
+        "sol": 663,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Right Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.  \n\nThis image was acquired on Dec. 31, 2022 (Sol 663) at the local mea",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/threeforks-x3.jpg",
+        "imageid": "ZR0_0663_0725801389_443ECM_N0320378ZCAM03022_100085J",
+        "sol": 663,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Right Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.  \n\nThis image was acquired on Dec. 31, 2022 (Sol 663) at the local mea",
+        "w": 1200,
+        "h": 1139
+      }
+    ],
+    "nukshak": [
+      {
+        "file": "photos/nukshak.jpg",
+        "imageid": "ZL0_0565_0717090427_303EBY_N0280000ZCAM08586_0340LMJ",
+        "sol": 565,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "Frame selezionato dal progetto (raw NASA Mars 2020)",
+        "w": 1024,
+        "h": 746
+      },
+      {
+        "file": "photos/nukshak-x1.jpg",
+        "imageid": "ZL0_0565_0717090161_303EBY_N0280000ZCAM08586_0340LMJ",
+        "sol": 565,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on Sept. 22, 2022 (Sol 565) at the local mean ",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/nukshak-x2.jpg",
+        "imageid": "ZL0_0565_0717112075_348EBY_N0290000ZCAM07101_1100LMJ",
+        "sol": 565,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on Sept. 22, 2022 (Sol 565) at the local mean ",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/nukshak-x3.jpg",
+        "imageid": "ZL0_0565_0717112180_348EBY_N0290000ZCAM07101_1100LMJ",
+        "sol": 565,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on Sept. 22, 2022 (Sol 565) at the local mean ",
+        "w": 1200,
+        "h": 874
+      }
+    ],
+    "yori": [
+      {
+        "file": "photos/yori.jpg",
+        "imageid": "NLF_0609_0721019534_476ECM_N0301172NCAM12609_01_195J",
+        "sol": 609,
+        "camera": "Navcam",
+        "credit": "NASA/JPL-Caltech",
+        "caption": "Frame selezionato dal progetto (raw NASA Mars 2020)",
+        "w": 1024,
+        "h": 770
+      },
+      {
+        "file": "photos/yori-x1.jpg",
+        "imageid": "ZL0_0609_0721008552_410EBY_N0301096ZCAM03478_1100LMJ",
+        "sol": 609,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on Nov. 6, 2022 (Sol 609) at the local mean so",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/yori-x2.jpg",
+        "imageid": "ZL0_0609_0721008230_863EBY_N0301096ZCAM03476_1100LMJ",
+        "sol": 609,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on Nov. 6, 2022 (Sol 609) at the local mean so",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/yori-x3.jpg",
+        "imageid": "NLF_0609_0721019055_771ECM_N0301172NCAM00709_07_095J",
+        "sol": 609,
+        "camera": "Navcam",
+        "credit": "NASA/JPL-Caltech",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its onboard Left Navigation Camera (Navcam). The camera is located high on the rover's mast and aids in driving. \n\nThis image was acquired on Nov. 6, 2022 (Sol 609",
+        "w": 1200,
+        "h": 904
+      }
+    ],
+    "wildcat": [
+      {
+        "file": "photos/wildcat.jpg",
+        "imageid": "ZL0_0464_0708123617_639EBY_N0260630ZCAM08484_1100LMJ",
+        "sol": 464,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "Frame selezionato dal progetto (raw NASA Mars 2020)",
+        "w": 1024,
+        "h": 746
+      },
+      {
+        "file": "photos/wildcat-x1.jpg",
+        "imageid": "ZL0_0464_0708122528_318EBY_N0260630ZCAM03377_1100LMJ",
+        "sol": 464,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on June 10, 2022 (Sol 464) at the local mean s",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/wildcat-x2.jpg",
+        "imageid": "ZR0_0464_0708123782_647EBY_N0260630ZCAM08484_1100LMJ",
+        "sol": 464,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Right Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.  \n\nThis image was acquired on June 10, 2022 (Sol 464) at the local mea",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/wildcat-x3.jpg",
+        "imageid": "ZR0_0464_0708123617_639EBY_N0260630ZCAM08484_1100LMJ",
+        "sol": 464,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Right Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.  \n\nThis image was acquired on June 10, 2022 (Sol 464) at the local mea",
+        "w": 1200,
+        "h": 874
+      }
+    ],
+    "rockytop": [
+      {
+        "file": "photos/rockytop.jpg",
+        "imageid": "NLF_0709_0729889968_787ECM_N0332864NCAM03709_01_195J",
+        "sol": 709,
+        "camera": "Navcam",
+        "credit": "NASA/JPL-Caltech",
+        "caption": "Frame selezionato dal progetto (raw NASA Mars 2020)",
+        "w": 1024,
+        "h": 770
+      },
+      {
+        "file": "photos/rockytop-x1.jpg",
+        "imageid": "ZL0_0709_0729888971_069EBY_N0332864ZCAM07114_0340LMJ",
+        "sol": 709,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on Feb. 17, 2023 (Sol 709) at the local mean s",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/rockytop-x2.jpg",
+        "imageid": "ZL0_0709_0729887912_928EBY_N0332864ZCAM08711_1100LMJ",
+        "sol": 709,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on Feb. 17, 2023 (Sol 709) at the local mean s",
+        "w": 1200,
+        "h": 874
+      },
+      {
+        "file": "photos/rockytop-x3.jpg",
+        "imageid": "ZL0_0709_0729888386_928EBY_N0332864ZCAM08711_1100LMJ",
+        "sol": 709,
+        "camera": "Mastcam-Z",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "NASA's Mars Perseverance rover acquired this image using its Left Mastcam-Z camera. Mastcam-Z is a pair of cameras located high on the rover's mast.\n\nThis image was acquired on Feb. 17, 2023 (Sol 709) at the local mean s",
+        "w": 1200,
+        "h": 874
+      }
+    ]
+  }
+}
