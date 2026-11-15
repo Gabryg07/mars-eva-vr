@@ -109,10 +109,10 @@
    "sol": 409,
    "kind": "base",
    "title": "EVA-1: dal deposito dei campioni al fronte del delta",
-   "text": "Obiettivo: recuperare le provette lasciate da Perseverance e campionare i sedimenti del delta, dove un lago antico può aver conservato tracce di vita. Segui la linea azzurra sul terreno: 5 tappe e rientro, 2,2 km. Tieni d'occhio ossigeno, pendenza e ora del tramonto. La posizione della base è una scelta del nostro scenario, non un dato NASA.",
+   "text": "Obiettivo: recuperare le provette lasciate da Perseverance e campionare i sedimenti del delta, dove un lago antico può aver conservato tracce di vita. Segui la linea azzurra sul terreno: 5 tappe e rientro, 2,2 km. Tieni d'occhio ossigeno, pendenza e ora del tramonto.",
    "photo": null,
    "title_en": "EVA-1: from the sample depot to the delta front",
-   "text_en": "Goal: recover the tubes left by Perseverance and sample the delta sediments, where an ancient lake may have preserved traces of life. Follow the cyan line on the ground: 5 stops and back, 2.2 km. Keep an eye on oxygen, slope and sunset time. The position of the base is a choice of our scenario, not NASA data."
+   "text_en": "Goal: recover the tubes left by Perseverance and sample the delta sediments, where an ancient lake may have preserved traces of life. Follow the cyan line on the ground: 5 stops and back, 2.2 km. Keep an eye on oxygen, slope and sunset time."
   },
   {
    "id": "threeforks",

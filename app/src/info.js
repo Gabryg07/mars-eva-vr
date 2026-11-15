@@ -46,7 +46,7 @@ export class Credits {
       [T('Radiazioni'), T`${num(m.radiation.mSvPerDay)} mSv al giorno in superficie, misurati da Curiosity RAD nel cratere Gale (Hassler et al., Science 2014): valore di riferimento, a Jezero non c'è un rivelatore`, 'NASA/JPL-Caltech/SwRI'],
       [T('Suoni'), T('Vento registrato dal microfono SuperCam di Perseverance ai sol 4, 685, 690 e 697 (PDS, mars2020_supercam, audio calibrato), solo filtrato e livellato'), 'NASA/JPL-Caltech/LANL/CNES/IRAP'],
       [T('Globo'), T('Mosaico globale a colori Viking MDIM 2.1 (NASA Mars Trek, USGS Astrogeology)'), 'NASA/JPL-Caltech/USGS'],
-      [T('Modello'), T`Passo: funzione di Tobler scalata a ${num(m.walk.flatSpeed)} m/s in piano. Ossigeno: lavoro metabolico con tuta (${m.metabolic.massKg} kg, gravità ${num(m.gravity)} m/s²), riserva del ${Math.round(m.oxygen.reserveFraction * 100)}%. Limiti di pendenza ${m.slopeLimitsDeg.join('°, ')}°. Base e airlock sono elementi del nostro scenario. Sono ipotesi nostre, modificabili nel file del sito.`, T('Squadra')],
+      [T('Modello'), T`Passo: funzione di Tobler scalata a ${num(m.walk.flatSpeed)} m/s in piano. Ossigeno: lavoro metabolico con tuta (${m.metabolic.massKg} kg, gravità ${num(m.gravity)} m/s²), riserva del ${Math.round(m.oxygen.reserveFraction * 100)}%. Limiti di pendenza ${m.slopeLimitsDeg.join('°, ')}°. Parametri modificabili nel file del sito.`, T('Squadra')],
     ];
     this.panel.draw((c, W, H) => {
       rrect(c, 4, 4, W - 8, H - 8, 30); c.fillStyle = 'rgba(14,9,6,0.94)'; c.fill(); c.lineWidth = 4; c.strokeStyle = '#ffb37a'; c.stroke();

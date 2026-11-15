@@ -97,7 +97,7 @@ export class SampleGame {
   drawBrief(end) {
     const g = this, para = (c, s, y, W, sz = 24, col = '#f2e9e1') => s.split('\n').reduce((yy, line) => wrap(c, line, 34, yy, W - 68, sz, sz * 1.32, col), y);
     this.brief.draw((c, W, H) => { rrect(c, 4, 4, W - 8, H - 8, 26); c.fillStyle = 'rgba(14,10,8,0.95)'; c.fill(); c.lineWidth = 5; c.strokeStyle = '#ffd166'; c.stroke();
-      text(c, L(end ? { it: 'MISSIONE COMPIUTA', en: 'MISSION ACCOMPLISHED' } : { it: 'OPERAZIONE DEPOSITO · DEMO', en: 'OPERATION DEPOT · DEMO' }), 34, 62, 38, '#ffd166', 700);
+      text(c, L(end ? { it: 'MISSIONE COMPIUTA', en: 'MISSION ACCOMPLISHED' } : { it: 'OPERAZIONE DEPOSITO', en: 'OPERATION DEPOT' }), 34, 62, 38, '#ffd166', 700);
       let y = 108;
       if (!end) {
         y = para(c, L({ it: 'Tra dicembre 2022 e gennaio 2023 Perseverance ha lasciato 10 provette sigillate sul terreno di Three Forks, a 150 m da qui: rocce, sabbia, aria marziana e una provetta testimone. È la copia di riserva dei campioni da riportare sulla Terra.', en: 'Between December 2022 and January 2023 Perseverance left 10 sealed tubes on the ground at Three Forks, 150 m from here: rocks, sand, Martian air and a witness tube. They are the backup set of the samples meant to come back to Earth.' }), y, W);

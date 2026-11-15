@@ -17,7 +17,7 @@ export class Menu {
       ...row(490, 'quick', [{ label: () => T('realistica'), on: () => !this.set.quick, act: () => this.apply({ quick: false }) }, { label: () => T('rapida'), on: () => this.set.quick, act: () => this.apply({ quick: true }) }]),
       { x: 520, y: 588, w: 616, h: 76, key: 'vol', slider: true, label: () => '', on: () => false, act: () => this.setVol((this.hx - 520) / 616) },
       { x: 58, y: 698, w: 356, h: 96, key: 'start', primary: true, label: () => T('INIZIA LA MISSIONE'), on: () => false, act: () => app.start() },
-      { x: 430, y: 698, w: 356, h: 96, key: 'game', primary: true, game: true, label: () => T('DEMO CAMPIONI'), on: () => false, act: () => app.startGame() },
+      { x: 430, y: 698, w: 356, h: 96, key: 'game', primary: true, game: true, label: () => T('RECUPERO CAMPIONI'), on: () => false, act: () => app.startGame() },
       { x: 802, y: 698, w: 356, h: 96, key: 'data', primary: true, alt: true, label: () => T('SOLO DATI'), on: () => false, act: () => app.explore() },
     ];
     try { const v = parseFloat(localStorage.getItem('marswalk.vol')); if (v >= 0 && v <= 1) this.set.vol = v; } catch (e) { }
@@ -39,7 +39,7 @@ export class Menu {
         rrect(c, b.x, b.y, b.w, b.h, 18);
         c.fillStyle = b.game ? (hov ? '#ffe39a' : '#ffd166') : b.alt ? (hov ? '#b3efff' : '#7fe0ff') : b.primary ? (hov ? '#ffb37a' : '#ff9a52') : on ? '#7fe0ff' : hov ? 'rgba(127,224,255,0.3)' : 'rgba(255,255,255,0.1)'; c.fill(); if (hov) { c.lineWidth = 4; c.strokeStyle = '#fff'; c.stroke(); }
         text(c, b.label(), b.x + b.w / 2, b.y + b.h / 2 + (b.primary ? 10 : 11), b.primary ? 26 : 30, b.primary || on ? '#1a0f0a' : '#fff', 700, 'center'); }
-      let y = wrap(c, T("Missione: esci dall'airlock, segui la linea azzurra e rientra nella base. Demo: recupera le 10 provette lasciate da Perseverance a Three Forks. Solo dati: sala con cartine, foto e documentazione.") + ' ' + T('A sinistra: il globo di Marte. Prendilo con il grilletto laterale, con due mani lo ingrandisci.'), 58, 840, W - 116, 22, 29, '#fff');
+      let y = wrap(c, T("Missione: esci dall'airlock, segui la linea azzurra e rientra nella base. Recupero campioni: recupera le 10 provette lasciate da Perseverance a Three Forks. Solo dati: sala con cartine, foto e documentazione.") + ' ' + T('A sinistra: il globo di Marte. Prendilo con il grilletto laterale, con due mani lo ingrandisci.'), 58, 840, W - 116, 22, 29, '#fff');
       text(c, T('Punta e premi il grilletto · al PC clic del mouse o Invio'), W / 2, H - 26, 20, '#d9c4b2', 400, 'center');
     });
   }
