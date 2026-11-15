@@ -18,6 +18,8 @@ export class Heli {
     // beacon at the take-off spot, violet so it does not look like a mission stop
     const bm = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 90, 10, 1, true).translate(0, 45, 0), new THREE.MeshBasicMaterial({ color: COL, transparent: true, opacity: 0.5, depthWrite: false, side: THREE.DoubleSide }));
     bm.position.set(this.x0, this.g0, this.z0); app.world.add(bm); this.beacon = bm;
+    // name tag over the beacon, like the mission stops
+    const tag = this.tag = new Panel(4, 1, 128, { depthTest: true }); tag.mesh.rotation.order = 'YXZ'; tag.mesh.position.set(this.x0, this.g0 + 7, this.z0); app.world.add(tag.mesh); this.drawTag();
     // landing spot marker and the flight line
     const ring = new THREE.Mesh(new THREE.RingGeometry(0.8, 1.0, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: COL, side: THREE.DoubleSide })); ring.position.set(this.x1, this.g1 + 0.05, this.z1); app.world.add(ring);
     // control panel 3 m from the take-off spot, facing it
@@ -33,9 +35,11 @@ export class Heli {
   play() { this.t = 0; this.draw(); }
   // flight profile: climb 15 s, cruise, descend 15 s; along-track speed limited to the logged maximum
   state(t) { const up = 15, dn = 15, cr = DUR - up - dn, f = t < up ? 0 : t > DUR - dn ? 1 : Math.min(1, (t - up) / cr), h = t < up ? ALT * t / up : t > DUR - dn ? ALT * Math.max(0, DUR - t) / dn : ALT; return { f: f * f * (3 - 2 * f), h }; }
-  place(t) { const { f, h } = this.state(Math.max(0, t)), x = this.x0 + (this.x1 - this.x0) * f, z = this.z0 + (this.z1 - this.z0) * f, g = this.app.ground(x, z) ?? this.g0; this.g.position.set(x, g + h, z); this.g.rotation.y = Math.atan2(this.x1 - this.x0, this.z1 - this.z0); this.h = h; }
+  place(t) { const { f, h } = this.state(Math.max(0, t)), x = this.x0 + (this.x1 - this.x0) * f, z = this.z0 + (this.z1 - this.z0) * f, g = this.app.ground(x, z) ?? this.g0; this.g.position.set(x, g + h, z); this.g.rotation.y = Math.atan2(this.x1 - this.x0, this.z1 - this.z0); this.h = h; this.dist = f * DIST; }
+  drawTag() { this.tag.draw((c, W, H) => { rrect(c, 2, 2, W - 4, H - 4, 30); c.fillStyle = 'rgba(14,9,6,0.72)'; c.fill(); text(c, L({ it: 'Volo 42 di Ingenuity', en: 'Ingenuity flight 42' }), W / 2, H * 0.68, 60, '#e2c2ff', 700, 'center'); }); }
   update(dt, cam) {
-    const d = Math.hypot(cam.x - this.x0, cam.z - this.z0); this.beacon.scale.set(Math.max(1, d / 120), 1, Math.max(1, d / 120));
+    const dx = this.x0 - cam.x, dz = this.z0 - cam.z, d = Math.hypot(dx, dz); this.beacon.scale.set(Math.max(1, d / 120), 1, Math.max(1, d / 120));
+    const d3 = Math.hypot(d, cam.y - this.g0), ts = Math.max(1, d3 / 28), tm = this.tag.mesh; tm.scale.setScalar(ts); tm.position.y = this.g0 + 5 + 2.2 * ts; tm.rotation.set(0, Math.atan2(-dx, -dz), 0); tm.visible = d3 > 14; if (this.app.player.lift) this.app.camera.getWorldQuaternion(tm.quaternion);
     if (this.t < 0) return; this.t += dt; if (this.rotor) this.rotor.rotation.y += dt * 45;
     if (this.t >= DUR) { this.place(DUR); this.t = -1; this.done = true; this.draw(); return; } this.place(this.t); if ((this._a = (this._a || 0) + dt) > 0.5) { this._a = 0; this.draw(); }
   }
@@ -45,7 +49,7 @@ export class Heli {
       text(c, L({ it: 'INGENUITY · VOLO 42', en: 'INGENUITY · FLIGHT 42' }), 26, 52, 30, '#c77dff', 700); text(c, L({ it: 'sol 697 · 5 febbraio 2023', en: 'sol 697 · 5 February 2023' }), W - 26, 52, 20, '#d9c4b2', 500, 'right');
       wrap(c, L({ it: `Da qui l'elicottero è decollato ed è atterrato ${Math.round(DIST)} m più avanti, vicino a Rocky Top (anello viola). Quota 10 m, velocità massima 5,5 m/s, durata 137 s: dati ufficiali del registro dei voli NASA. Il tragitto tra i due punti è disegnato in linea retta.`, en: `The helicopter took off here and landed ${Math.round(DIST)} m away, near Rocky Top (violet ring). Altitude 10 m, top speed 5.5 m/s, 137 s: official NASA flight log values. The path between the two points is drawn as a straight line.` }), 26, 100, W - 52, 21, 28, '#f2e9e1');
       const bx = 26, by = H - 140, bw = W - 52, bh = 74; rrect(c, bx, by, bw, bh, 18); c.fillStyle = run ? 'rgba(199,125,255,0.25)' : '#c77dff'; c.fill();
-      text(c, run ? L({ it: `In volo: ${Math.round(this.t)} s · quota ${this.h.toFixed(1)} m`, en: `Flying: ${Math.round(this.t)} s · altitude ${this.h.toFixed(1)} m` }) : (this.done ? L({ it: '▶  RIVEDI IL VOLO', en: '▶  REPLAY THE FLIGHT' }) : L({ it: '▶  AVVIA IL VOLO', en: '▶  START THE FLIGHT' })), W / 2, by + 48, 32, run ? '#fff' : '#1a0f0a', 700, 'center');
+      text(c, run ? L({ it: `${Math.round(this.t)} s · quota ${this.h.toFixed(1)} m · ${Math.round(this.dist)} m percorsi`, en: `${Math.round(this.t)} s · alt ${this.h.toFixed(1)} m · ${Math.round(this.dist)} m flown` }) : (this.done ? L({ it: '▶  RIVEDI IL VOLO', en: '▶  REPLAY THE FLIGHT' }) : L({ it: '▶  AVVIA IL VOLO', en: '▶  START THE FLIGHT' })), W / 2, by + 48, 32, run ? '#fff' : '#1a0f0a', 700, 'center');
       text(c, L({ it: 'Avvicinati e premi il grilletto · al PC clic o tasto P', en: 'Come close and pull the trigger · on PC click or P' }), W / 2, H - 30, 18, '#a8988a', 400, 'center'); });
   }
 }

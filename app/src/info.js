@@ -44,6 +44,7 @@ export class Credits {
       ...(s.overlays?.thermal ? [[T('Infrarosso'), T('Mosaico notturno THEMIS di Mars Odyssey, 100 m/pixel: quanto il suolo trattiene il calore, cioè roccia compatta oppure sabbia'), 'NASA/JPL-Caltech/Arizona State University']] : []),
       [T('Meteo'), w ? T`Stazione MEDA di Perseverance, sol ${w.sol}: da ${Math.round(w.min_temp)} a ${Math.round(w.max_temp)} °C, ${Math.round(w.pressure)} Pa, tramonto alle ${String(w.sunset).slice(0, 5)}` : T('Stazione MEDA di Perseverance'), 'NASA/JPL-Caltech/CAB (CSIC-INTA)'],
       [T('Radiazioni'), T`${num(m.radiation.mSvPerDay)} mSv al giorno in superficie, misurati da Curiosity RAD nel cratere Gale (Hassler et al., Science 2014): valore di riferimento, a Jezero non c'è un rivelatore`, 'NASA/JPL-Caltech/SwRI'],
+      [T('Suoni'), T('Vento registrato dal microfono SuperCam di Perseverance ai sol 4, 685, 690 e 697 (PDS, mars2020_supercam, audio calibrato), solo filtrato e livellato'), 'NASA/JPL-Caltech/LANL/CNES/IRAP'],
       [T('Globo'), T('Mosaico globale a colori Viking MDIM 2.1 (NASA Mars Trek, USGS Astrogeology)'), 'NASA/JPL-Caltech/USGS'],
       [T('Modello'), T`Passo: funzione di Tobler scalata a ${num(m.walk.flatSpeed)} m/s in piano. Ossigeno: lavoro metabolico con tuta (${m.metabolic.massKg} kg, gravità ${num(m.gravity)} m/s²), riserva del ${Math.round(m.oxygen.reserveFraction * 100)}%. Limiti di pendenza ${m.slopeLimitsDeg.join('°, ')}°. Base e airlock sono elementi del nostro scenario. Sono ipotesi nostre, modificabili nel file del sito.`, T('Squadra')],
     ];

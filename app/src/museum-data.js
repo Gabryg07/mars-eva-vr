@@ -85,9 +85,16 @@ export const LOST = {
   note: { it: 'Ogni fallimento ha insegnato qualcosa: dopo il 1999 la NASA ha cambiato il modo di verificare i progetti, e le missioni successive sono riuscite tutte.', en: 'Every failure taught something: after 1999 NASA changed how designs are checked, and every mission since has succeeded.' },
 };
 
-export const SUIT = {
+export const SUITS = [{
+  a: 2.0, model: 'suit.glb', height: 1.85, color: '#ff9a52', kicker: { it: 'TUTA DA LANCIO E RIENTRO', en: 'LAUNCH AND ENTRY SUIT' },
   name: 'Advanced Crew Escape Suit (ACES)', years: '1994 – 2011',
   text: { it: 'La tuta arancione che gli equipaggi dello Space Shuttle indossavano durante il lancio e il rientro. È una tuta pressurizzata completa, costruita dalla David Clark Company: se la cabina perde pressione mantiene in vita l\'astronauta, e in caso di emergenza permette di lanciarsi con il paracadute. Dentro ci sono paracadute, giubbotto di salvataggio, zattera, acqua e razzi di segnalazione. Il colore arancione serve a farsi trovare in mare. Pesa circa 13 kg.',
     en: 'The orange suit Space Shuttle crews wore during launch and re-entry. It is a full pressure suit made by the David Clark Company: if the cabin loses pressure it keeps the astronaut alive, and in an emergency it allows a parachute bailout. It carries a parachute, life vest, raft, water and flares. The orange colour makes the wearer easy to find at sea. It weighs about 13 kg.' },
   note: { it: 'Non è una tuta da passeggiata spaziale: su Marte servirà una tuta da superficie, più mobile e protetta dalla polvere. Una sua evoluzione (OCSS) viene usata nelle capsule Orion del programma Artemis.', en: 'It is not a spacewalk suit: on Mars a surface suit will be needed, more mobile and dust-proof. A development of it (OCSS) is used in the Orion capsules of the Artemis programme.' },
-};
+}, {
+  a: 2.6, model: 'z2.glb', height: 1.9, turn: Math.PI, color: '#7fe0ff', kicker: { it: 'PROTOTIPO DI TUTA PER ESPLORAZIONE', en: 'EXPLORATION SUIT PROTOTYPE' },
+  name: 'NASA Z-2', years: '2015',
+  text: { it: 'Prototipo di tuta da superficie costruito da ILC Dover per il Johnson Space Center della NASA (contratto del 2013, 4,4 milioni di dollari) e consegnato nel 2015. Il busto rigido è in materiale composito e le articolazioni a cuscinetto di spalle, fianchi e caviglie lasciano piegarsi, inginocchiarsi e raccogliere campioni da terra, come serve su Marte. Si indossa entrando da un portello sulla schiena, che può agganciarsi a un "suitport" sulla parete di un habitat o di un rover: si entra e si esce senza camera stagna e senza portare dentro la polvere.',
+    en: 'Surface suit prototype built by ILC Dover for NASA\'s Johnson Space Center (2013 contract, 4.4 million dollars) and delivered in 2015. Its hard upper torso is made of composite, and bearing joints at shoulders, hips and ankles let the wearer bend, kneel and pick up samples from the ground, as Mars will require. It is entered through a hatch on the back, which can dock to a "suitport" on the wall of a habitat or rover: you get in and out without an airlock and without bringing dust inside.' },
+  note: { it: 'Banco di prova per le tute marziane: è stato pensato per lavorare con il nuovo zaino di supporto vitale della NASA e per prove nella piscina del Neutral Buoyancy Lab e in camere a vuoto. Il disegno esterno è stato scelto con un voto pubblico online.', en: 'A test bed for Martian suits: it was designed to work with NASA\'s new portable life support backpack and for trials in the Neutral Buoyancy Lab pool and in vacuum chambers. Its outer cover design was chosen by an online public vote.' },
+}];

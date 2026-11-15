@@ -129,7 +129,7 @@ export class ResearchRoom {
   }
   update(dt, cam) {
     const { app } = this, xr = app.renderer.xr.isPresenting, inside = this.near();
-    this.dl.style.display = inside && !xr ? 'block' : 'none'; if (app.hud && !app.menu?.open && inside !== this._in) { this._in = inside; app.hud.panel.mesh.visible = !inside || xr; }   // on a PC the helmet readout would cover the boards
+    this.dl.style.display = inside && !xr ? 'block' : 'none'; const h = app.player.head(), hide = inside || this.hab.inRoom2(h.x, h.z); if (app.hud && !app.menu?.open && hide !== this._in) { this._in = hide; app.hud.panel.mesh.visible = !hide || xr; }   // on a PC the helmet readout would cover the boards
     this.cal.update(dt); this.plastico.update(dt, cam);
     this.hover = null; this.dot.visible = false; if (!inside || app.menu?.open) return;
     const cast = (o, d, hand) => { this.ray.set(o, d); const hits = this.ray.intersectObjects(this.targets.map(t => t.mesh), false); const h = hits[0]; if (!h || h.distance > 9) return null; return { t: this.targets.find(t => t.mesh === h.object), h, hand }; };

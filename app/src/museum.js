@@ -6,7 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { Panel, rrect, text, wrap } from './ui.js';
 import { lang } from './i18n.js';
-import { CRAFT, LOST, SUIT } from './museum-data.js';
+import { CRAFT, LOST, SUITS } from './museum-data.js';
 const L = o => (typeof o === 'string' ? o : o[lang.cur] ?? o.it);
 const NM = c => (lang.cur === 'en' && c.name_en) || c.name, YR = c => (lang.cur === 'en' && c.years_en) || c.years;
 const ROW_Z = { surface: 21, orbit: 44 }, GAP = 3.2, POLE = 1.3;
@@ -62,22 +62,27 @@ export class Museum {
         const wrapG = new THREE.Group(); s.scale.setScalar(k); const c = b.getCenter(new THREE.Vector3()); s.position.set(-c.x * k, -b.min.y * k, -c.z * k); wrapG.add(s); this.add(it, wrapG);
       }).catch(e => console.warn('museum model', f, e)); }
   }
-  // the spacesuit on a stand inside the habitat, with its own panel
+  // two spacesuits on stands inside the habitat, on the side away from the research room, each with a low reading desk in front
   suit() {
-    const { hab } = this, S = -hab.side, a = 1.3, R = 3.2, g = new THREE.Group(); g.position.set(S * R * Math.sin(a), 0, R * Math.cos(a)); g.rotation.y = Math.atan2(-g.position.x, -g.position.z) + Math.PI; hab.group.add(g);
-    g.add(cyl(0.38, 0.42, 0.08, dark(), 0, 0.04, 0, 24));
-    const pa = 1.8, p = new Panel(1.0, 1.3, 560, { depthTest: true }), m = p.mesh; m.renderOrder = 10; m.material.transparent = false; m.material.depthWrite = true;
-    m.position.set(S * 3.75 * Math.sin(pa), 1.45, 3.75 * Math.cos(pa)); m.rotation.y = Math.atan2(-m.position.x, -m.position.z); hab.group.add(m);
-    this.suitPanel = { p, draw: () => p.draw((c, W, H) => this.drawSuit(c, W, H)) }; this.suitPanel.draw();
-    this.suitPos = hab.world(g.position.x, g.position.z);
-    new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(`${this.root}models/suit.glb`, gltf => { const s = gltf.scene; s.traverse(o => { if (o.isMesh) { if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals(); const mm = o.material; o.material = new THREE.MeshLambertMaterial({ map: mm.map || null, color: mm.color }); } });
-      const b = new THREE.Box3().setFromObject(s), sz = b.getSize(new THREE.Vector3()), k = 1.85 / sz.y, c = b.getCenter(new THREE.Vector3()); s.scale.setScalar(k); s.position.set(-c.x * k, 0.08 - b.min.y * k, -c.z * k); g.add(s); this.suitModel = s; }, undefined, e => console.warn('suit', e));
+    const { hab } = this, S = -hab.side; this.suitPos = []; this.suitPanels = [];
+    for (const d of SUITS) {
+      const g = new THREE.Group(); g.position.set(S * 3.3 * Math.sin(d.a), 0, 3.3 * Math.cos(d.a)); g.rotation.y = Math.atan2(-g.position.x, -g.position.z) + Math.PI; hab.group.add(g);
+      g.add(cyl(0.38, 0.42, 0.08, dark(), 0, 0.04, 0, 24));
+      // reading desk: low and tilted, so it never hides the suit behind it
+      const p = new Panel(1.0, 1.3, 560, { depthTest: true }), m = p.mesh; m.renderOrder = 10; m.material.transparent = false; m.material.depthWrite = true; m.scale.setScalar(0.62);
+      const dx = S * 2.3 * Math.sin(d.a), dz = 2.3 * Math.cos(d.a), yaw = Math.atan2(dx, dz) + Math.PI; m.position.set(dx, 0.92, dz); m.rotation.set(-0.85, yaw, 0, 'YXZ'); hab.group.add(m);
+      const post = cyl(0.03, 0.03, 0.7, dark(), dx, 0.35, dz, 8); hab.group.add(post);
+      const pn = { p, draw: () => p.draw((c, W, H) => this.drawSuit(c, W, H, d)) }; pn.draw(); this.suitPanels.push(pn);
+      this.suitPos.push([...hab.world(g.position.x, g.position.z), 0.5], [...hab.world(dx, dz), 0.3]);
+      new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(`${this.root}models/${d.model}`, gltf => { const s = gltf.scene; s.traverse(o => { if (o.isMesh) { if (!o.geometry.attributes.normal) o.geometry.computeVertexNormals(); const mm = o.material; o.material = new THREE.MeshLambertMaterial({ map: mm.map || null, color: mm.color }); } });
+        const b = new THREE.Box3().setFromObject(s), sz = b.getSize(new THREE.Vector3()), k = d.height / sz.y, c = b.getCenter(new THREE.Vector3()); s.scale.setScalar(k); s.position.set(-c.x * k, 0.08 - b.min.y * k, -c.z * k); if (d.turn) s.rotation.y = d.turn; g.add(s); }, undefined, e => console.warn('suit', e));
+    }
   }
-  drawSuit(c, W, H) {
-    rrect(c, 4, 4, W - 8, H - 8, 22); c.fillStyle = 'rgba(14,10,8,0.96)'; c.fill(); c.lineWidth = 5; c.strokeStyle = '#ff9a52'; c.stroke();
-    text(c, L({ it: 'TUTA DA LANCIO E RIENTRO', en: 'LAUNCH AND ENTRY SUIT' }), 26, 46, 20, '#ff9a52', 700); text(c, SUIT.years, W - 26, 46, 20, '#ff9a52', 700, 'right');
-    let y = wrap(c, SUIT.name, 26, 92, W - 52, 34, 40, '#fff', 700); y = wrap(c, L(SUIT.text), 26, y + 8, W - 52, 21, 28, '#f2e9e1');
-    wrap(c, L(SUIT.note), 26, y + 14, W - 52, 19, 25, '#d9c4b2'); text(c, L({ it: 'Modello 3D NASA (NASA 3D Resources)', en: 'NASA 3D model (NASA 3D Resources)' }), 26, H - 20, 16, '#a8988a', 400);
+  drawSuit(c, W, H, d) {
+    rrect(c, 4, 4, W - 8, H - 8, 22); c.fillStyle = 'rgba(14,10,8,0.96)'; c.fill(); c.lineWidth = 5; c.strokeStyle = d.color; c.stroke();
+    text(c, L(d.kicker), 26, 46, 20, d.color, 700); text(c, d.years, W - 26, 46, 20, d.color, 700, 'right');
+    let y = wrap(c, d.name, 26, 92, W - 52, 34, 40, '#fff', 700); y = wrap(c, L(d.text), 26, y + 8, W - 52, 21, 28, '#f2e9e1');
+    wrap(c, L(d.note), 26, y + 14, W - 52, 19, 25, '#d9c4b2'); text(c, L({ it: 'Modello 3D NASA (NASA 3D Resources)', en: 'NASA 3D model (NASA 3D Resources)' }), 26, H - 20, 16, '#a8988a', 400);
   }
   selfie(x, z) {   // a photo stand on the very spot where Perseverance took its Three Forks selfie
     const { app, hab } = this, gy = app.ground(x, z) ?? 0, p = new Panel(1.6, 1.2, 500, { depthTest: true }), m = p.mesh; m.renderOrder = 10; m.material.transparent = false; m.material.depthWrite = true;
@@ -90,9 +95,9 @@ export class Museum {
       text(c, 'NASA/JPL-Caltech/MSSS · PIA25681', 22, H - 24, 17, '#a8988a', 400); });
     im.onload = draw; im.src = `${this.root}research/selfies/three_forks.jpg`; draw(); this.selfieDraw = draw; this.selfiePos = [x, z];
   }
-  canPass(x, z) { if (this.suitPos && Math.hypot(x - this.suitPos[0], z - this.suitPos[1]) < 0.5) return false; if (!this.g.visible) return true; for (const it of this.items) if (Math.hypot(x - it.x, z - it.z) < it.r) return false; for (const s of this.signs) if (Math.hypot(x - s.x, z - s.z) < s.r) return false; return true; }
+  canPass(x, z) { for (const [sx, sz, r] of this.suitPos) if (Math.hypot(x - sx, z - sz) < r) return false; if (!this.g.visible) return true; for (const it of this.items) if (Math.hypot(x - it.x, z - it.z) < it.r) return false; for (const s of this.signs) if (Math.hypot(x - s.x, z - s.z) < s.r) return false; return true; }
   update(dt, cam) { const d = Math.hypot(cam.x - this.cx, cam.z - this.cz); this.g.visible = d < 420; if (!this.loaded && this.app.started && d < 160) this.load(); }
-  redraw() { for (const s of this.signs) s.draw(); this.suitPanel?.draw(); this.selfieDraw?.(); }
+  redraw() { for (const s of this.signs) s.draw(); this.suitPanels.forEach(p => p.draw()); this.selfieDraw?.(); }
   drawPanel(c, W, H, cr) {
     const orbit = cr.row === 'orbit', col = orbit ? '#7fe0ff' : '#ffb37a';
     rrect(c, 4, 4, W - 8, H - 8, 22); c.fillStyle = 'rgba(14,10,8,0.96)'; c.fill(); c.lineWidth = 5; c.strokeStyle = col; c.stroke();
@@ -128,7 +133,7 @@ function mariner(span, panelW, height, extra) {
   g.add(cyl(0.025, 0.025, height - y0 - busH, grey(), 0.45, y0 + busH + (height - y0 - busH) / 2, 0.2, 8));
   if (extra) extra(g, y0, busH); return g;
 }
-const PROC = {
+export const PROC = {
   mariner4: () => mariner(6.88, 0.9, 2.89),
   mariner67: () => mariner(5.79, 0.9, 3.35, (g, y0) => { g.add(box(0.5, 0.35, 0.5, dark(), 0, y0 - 0.15, 0)); }),
   mariner9: () => mariner(6.89, 0.9, 2.28, (g, y0, h) => { g.add(cyl(0.12, 0.35, 0.6, grey(), 0, y0 + h + 0.5, 0)); g.add(cyl(0.45, 0.45, 0.4, foil(), 0, y0 + h + 0.2, 0, 12)); }),

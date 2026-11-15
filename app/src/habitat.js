@@ -11,15 +11,15 @@ export class Habitat {
     this.app = app; this.cx = cx; this.cz = cz; this.yaw = yaw; this.cos = Math.cos(yaw); this.sin = Math.sin(yaw);
     const gl = (lx, lz) => app.ground(...this.world(lx, lz)) ?? -Infinity, ring = (ox, rr) => { let t = -Infinity; for (let a = 0; a < 24; a++) for (const f of [0, 0.5, 1]) t = Math.max(t, gl(ox + Math.sin(a * 0.2618) * rr * f, Math.cos(a * 0.2618) * rr * f)); return t; };
     // the research room goes on the side (local +x or -x) where the ground is lower, so the terrain never pokes through its floor
-    const tp = ring(XC, R2 + 0.3), tm = ring(-XC, R2 + 0.3); this.side = tp <= tm ? 1 : -1; const top = Math.max(ring(0, R + 0.3), Math.min(tp, tm));
+    const tp = ring(XC, R2 + 0.3), tm = ring(-XC, R2 + 0.3); this.side = tp <= tm ? 1 : -1; const top = Math.max(ring(0, R + 0.3), tp, tm);   // both side rooms share the base floor, so it clears the ground under all three modules
     this.floorY = top + 0.12; const g = this.group = new THREE.Group(); g.position.set(cx, this.floorY, cz); g.rotation.y = yaw;
     const mat = (map, side = THREE.DoubleSide) => new THREE.MeshBasicMaterial({ map, side }), col = (c, side = THREE.DoubleSide) => new THREE.MeshBasicMaterial({ color: c, side });
     const a = Math.asin(DOOR_W / 2 / R), add = (geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
     const outT = panels(['#e9e2d8', '#b9a795'], 'rgba(60,40,30,0.35)', 24, 2), inT = panels(['#dfe4e8', '#aab2ba'], 'rgba(40,50,60,0.3)', 24, 3, (c, w, h) => { c.fillStyle = '#ff9a52'; c.fillRect(0, h * 0.62, w, 6); });
     outT.wrapS = inT.wrapS = THREE.RepeatWrapping;
-    const sd = this.side > 0 ? Math.PI / 2 : 3 * Math.PI / 2, arcs = [[Math.PI + a, sd > Math.PI ? sd - a : sd + 2 * Math.PI - a], [sd + a, sd > Math.PI ? 3 * Math.PI - a : Math.PI - a]];
+    const P2 = Math.PI / 2, arcs = [[3 * P2 + a, 5 * P2 - a], [P2 + a, 2 * P2 - a], [2 * P2 + a, 3 * P2 - a]];   // openings: door (-z), research room and mission room (±x)
     for (const [t0, t1] of arcs) { add(new THREE.CylinderGeometry(R + 0.06, R + 0.06, H, 24, 1, true, t0, t1 - t0), mat(outT, THREE.FrontSide), 0, H / 2); add(new THREE.CylinderGeometry(R, R, H, 24, 1, true, t0, t1 - t0), mat(inT, THREE.BackSide), 0, H / 2); }
-    for (const t of [Math.PI, sd]) add(new THREE.CylinderGeometry(R + 0.03, R + 0.03, H - DOOR_H, 6, 1, true, t - a, 2 * a), col(0xbfb2a2), 0, DOOR_H + (H - DOOR_H) / 2);
+    for (const t of [Math.PI, P2, 3 * P2]) add(new THREE.CylinderGeometry(R + 0.03, R + 0.03, H - DOOR_H, 6, 1, true, t - a, 2 * a), col(0xbfb2a2), 0, DOOR_H + (H - DOOR_H) / 2);
     const dome = add(new THREE.SphereGeometry(R + 0.06, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2), col(0xd9d0c4, THREE.FrontSide), 0, H); dome.scale.y = 0.42;
     const ceil = add(new THREE.SphereGeometry(R, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2), col(0xc9d0d6, THREE.BackSide), 0, H); ceil.scale.y = 0.4;
     add(new THREE.CircleGeometry(R * 0.35, 32).rotateX(Math.PI / 2), col(0xfff6e0), 0, H + R * 0.4 * 0.93);                         // ceiling light
@@ -51,14 +51,15 @@ export class Habitat {
   inside(x, z) { const [lx, lz] = this.local(x, z); return Math.hypot(lx, lz) < R - 0.2; }
   _uv(x, z) { const [lx, lz] = this.local(x, z); return [lx * this.side, lz]; }                       // u: along the corridor towards the research room
   inRoom(x, z) { const [u, v] = this._uv(x, z); return Math.hypot(u - XC, v) < R2 - 0.2; }
-  indoors(x, z) { const [u, v] = this._uv(x, z); return this.inside(x, z) || this.inRoom(x, z) || (u > R - 0.4 && u < XC - R2 + 0.6 && Math.abs(v) < DOOR_W / 2); }
+  inRoom2(x, z) { const [u, v] = this._uv(x, z); return Math.hypot(u + XC, v) < R2 - 0.2; }   // mission room, opposite the research room
+  indoors(x, z) { const [u, v] = this._uv(x, z), au = Math.abs(u); return this.inside(x, z) || this.inRoom(x, z) || this.inRoom2(x, z) || (au > R - 0.4 && au < XC - R2 + 0.6 && Math.abs(v) < DOOR_W / 2); }
   roomPos(f = 1.6) { return this.world(this.side * (XC - R2 + f), 0); }   // just inside the research room, facing its centre
   roomYaw() { return this.yaw + (this.side > 0 ? -Math.PI / 2 : Math.PI / 2); }
   startPos() { return this.world(0, 1.0); }
   groundY(x, z) { const [lx, lz] = this.local(x, z), r = Math.hypot(lx, lz), z1 = -R - TUN;
-    if (r < R + 0.05) return this.floorY; { const [u, v] = this._uv(x, z); if (Math.hypot(u - XC, v) < R2 + 0.05 || (u > 0 && u < XC && Math.abs(v) < DOOR_W / 2 + 0.15)) return this.floorY; } if (Math.abs(lx) < DOOR_W / 2 + 0.15) { if (lz <= 0 && lz >= z1) return this.floorY; if (lz < z1 && lz > z1 - RAMP) return this.floorY + this.rampEnd * (z1 - lz) / RAMP; } return null; }
-  canPass(x, z) { const [lx, lz] = this.local(x, z), r = Math.hypot(lx, lz), [u, v] = this._uv(x, z), side = Math.abs(v) < DOOR_W / 2 - 0.2 && u > 0, inDoor = Math.abs(lx) < DOOR_W / 2 - 0.2 && lz < 0 || side, rr = Math.hypot(u - XC, v);
-    if (Math.abs(r - R) < 0.4 && !inDoor) return false; if (Math.abs(rr - R2) < 0.4 && !(side && u < XC)) return false; if (rr < 1.25) return false;   // research room wall and central kiosk
-    if (u > R - 0.2 && u < XC - R2 + 0.2 && Math.abs(v) >= DOOR_W / 2 - 0.2 && Math.abs(v) < DOOR_W / 2 + 0.5) return false; if (lz < -R + 0.2 && lz > -R - TUN - 0.2 && Math.abs(lx) >= DOOR_W / 2 - 0.2 && Math.abs(lx) < DOOR_W / 2 + 0.5) return false; return true; }
+    if (r < R + 0.05) return this.floorY; { const [u, v] = this._uv(x, z); if (Math.hypot(Math.abs(u) - XC, v) < R2 + 0.05 || (Math.abs(u) < XC && Math.abs(v) < DOOR_W / 2 + 0.15)) return this.floorY; } if (Math.abs(lx) < DOOR_W / 2 + 0.15) { if (lz <= 0 && lz >= z1) return this.floorY; if (lz < z1 && lz > z1 - RAMP) return this.floorY + this.rampEnd * (z1 - lz) / RAMP; } return null; }
+  canPass(x, z) { const [lx, lz] = this.local(x, z), r = Math.hypot(lx, lz), [u, v] = this._uv(x, z), side = Math.abs(v) < DOOR_W / 2 - 0.2, inDoor = Math.abs(lx) < DOOR_W / 2 - 0.2 && lz < 0 || side, au = Math.abs(u), rr = Math.hypot(au - XC, v);
+    if (Math.abs(r - R) < 0.4 && !inDoor) return false; if (Math.abs(rr - R2) < 0.4 && !(side && au < XC)) return false; if (rr < (u > 0 ? 1.25 : 2.35)) return false;   // central kiosk / railing round the big globe   // research room wall and central kiosk
+    if (au > R - 0.2 && au < XC - R2 + 0.2 && Math.abs(v) >= DOOR_W / 2 - 0.2 && Math.abs(v) < DOOR_W / 2 + 0.5) return false; if (lz < -R + 0.2 && lz > -R - TUN - 0.2 && Math.abs(lx) >= DOOR_W / 2 - 0.2 && Math.abs(lx) < DOOR_W / 2 + 0.5) return false; return true; }
   update(dt, pos) { const [lx, lz] = this.local(pos.x, pos.z), near = this.app.started && Math.abs(lx) < 2.5 && lz < -R + 2.5 && lz > -R - TUN - 3.5, y = this.door.position.y, ty = near ? DOOR_H * 1.5 - 0.05 : DOOR_H / 2; this.door.position.y += (ty - y) * Math.min(1, dt * 4); }
 }

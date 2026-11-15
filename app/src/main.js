@@ -16,6 +16,8 @@ import { Globe } from './globe.js';
 import { ResearchRoom } from './research.js';
 import { Museum } from './museum.js';
 import { Heli } from './heli.js';
+import { Ambience } from './ambience.js';
+import { GlobeRoom } from './globe-room.js';
 import { T, lang, setLang } from './i18n.js';
 
 const Q = new URLSearchParams(location.search);
@@ -104,7 +106,8 @@ async function boot() {
   app.ground = (x, z) => { for (const r of app.rings) if (r.field.contains(x, z)) return r.field.height(x, z) - h0; return null; };
   app.slope = (x, z) => { for (const r of app.rings) if (r.field.contains(x, z, r.ring.res * 2)) return r.field.slopeDeg(x, z, r.ring.res); return 0; };
   const bp = site.pois.find(p => p.kind === 'base'), fp = site.pois.find(p => p.id === site.legs[0].to), hab = app.habitat = new Habitat(app, bp.x, -bp.y, Math.atan2(-(fp.x - bp.x), fp.y - bp.y));
-  app.siteId = SITE; const room = app.room = new ResearchRoom(app, hab, import.meta.env.BASE_URL); const museum = app.museum = new Museum(app, hab, import.meta.env.BASE_URL); const heli = app.heli = new Heli(app, import.meta.env.BASE_URL);
+  app.siteId = SITE; const room = app.room = new ResearchRoom(app, hab, import.meta.env.BASE_URL); const museum = app.museum = new Museum(app, hab, import.meta.env.BASE_URL); const heli = app.heli = new Heli(app, import.meta.env.BASE_URL); const amb = app.ambience = new Ambience(import.meta.env.BASE_URL); const groom = app.globeRoom = new GlobeRoom(app, hab, import.meta.env.BASE_URL);
+  for (const ev of ['pointerdown', 'keydown', 'touchend']) addEventListener(ev, () => amb.start(), true);   // audio may only start after a gesture
   app.walkGround = (x, z) => hab.groundY(x, z) ?? app.ground(x, z);
   const player = app.player = new Player(renderer, camera, scene, app.walkGround, renderer.domElement);
   const lim = site.rings[1].half - 30; player.canStandAt = (x, z) => Math.abs(x) < lim && Math.abs(z) < lim && hab.canPass(x, z) && museum.canPass(x, z) && (app.started || hab.indoors(x, z));   // the airlock stays shut until the mission starts
@@ -120,11 +123,11 @@ async function boot() {
   const hud = app.hud = new Hud(app);
   const wrist = app.wrist = new Wrist(app), credits = app.credits = new Credits(app), debrief = app.debrief = new Debrief(app), helmet = app.helmet = new Helmet(app), arm = app.arm = new ArmDisplay(app, base); app.onLayer = () => { wrist.draw(); arm.acc = 1; };
   const [rx, rz] = hab.world(4.5, -9.5), rover = app.rover = new Rover(app, `${import.meta.env.BASE_URL}perseverance.glb`, rx, rz, hab.yaw + 2.4);
-  const menu = app.menu = new Menu(app, hab.group), [gx, gz] = hab.world(-1.55, -0.9), globe = app.globe = new Globe(app, `${import.meta.env.BASE_URL}mars_globe.jpg`, gx, hab.floorY + 1.2, gz);
+  const menu = app.menu = new Menu(app, hab.group), [gx, gz] = hab.world(hab.side * 1.55, -0.9), globe = app.globe = new Globe(app, `${import.meta.env.BASE_URL}mars_globe.jpg`, gx, hab.floorY + 1.2, gz);
   hud.panel.mesh.visible = false;
   const helpText = () => { $('help').innerHTML = T('<b>PC</b>: clic sul menu per scegliere, poi clic per catturare il mouse · <b>WASD</b> cammina · <b>Shift</b> veloce · <b>L</b> livello dati · <b>I</b> display sul braccio · <b>M</b> vista dall\'alto · <b>T</b> traccia del rover · <b>C</b> fonti dei dati · <b>G</b> prendi il globo, <b>+</b>/<b>−</b> scala · <b>R</b> ricomincia<br><b>Quest</b>: stick sinistro cammina (grilletto laterale = veloce) · stick destro avanti = teletrasporto, lati = gira · <b>grilletto</b> sceglie nel menu · <b>grilletto destro</b> vista dall\'alto · <b>grilletto laterale destro</b> display sul braccio · <b>grilletti laterali</b> sul globo: prendi, con due mani ridimensiona · <b>A</b> livello dati · <b>B</b> traccia del rover · <b>X</b> fonti dei dati · <b>Y</b> ricomincia'); };
   // language switch: every panel is redrawn from the same data
-  app.setLang = l => { setLang(l); app.buildLayers(); app.setLayer(app.layer); pois.redraw(); room.redraw(); museum.redraw(); heli.draw(); credits.draw(); debrief.shown = false; arm.drawTile(); hab.redraw(); menu.draw(); globe.label(); globe.drawNames(true); helpText(); hud.acc = 1; };
+  app.setLang = l => { setLang(l); app.buildLayers(); app.setLayer(app.layer); pois.redraw(); room.redraw(); museum.redraw(); heli.draw(); heli.drawTag(); groom.redraw(); credits.draw(); debrief.shown = false; arm.drawTile(); hab.redraw(); menu.draw(); globe.label(); globe.drawNames(true); helpText(); hud.acc = 1; };
   app.start = () => { if (app.started) return; app.started = true; app.dataMode = false; menu.close(); hab.redraw(); };
   // data only: no mission clock, the airlock stays shut, the astronaut walks straight into the research room
   app.explore = () => { app.dataMode = true; menu.close(); const [x, z] = hab.roomPos(); player.placeAt(x, z, hab.roomYaw()); };
@@ -144,7 +147,7 @@ async function boot() {
     const dt = Math.min(clock.getDelta(), 0.1); shared.uTime.value += dt;
     menu.update(); player.update(dt); if (app.started) mission.idle(dt);
     camera.updateMatrixWorld(); camera.getWorldPosition(cam); shared.uCam.value.copy(cam); sky.position.copy(cam); camera.getWorldDirection(dir);
-    if (!player.lift && app.started) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam); room.update(dt, cam); museum.update(dt, cam); heli.update(dt, cam);
+    if (!player.lift && app.started) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam); room.update(dt, cam); museum.update(dt, cam); heli.update(dt, cam); groom.update(dt); amb.update(dt, !hab.indoors(cam.x, cam.z));
     const tris = terrain.update(cam, dir, renderer.xr.isPresenting ? 0.2 : 0.35, app.baseRes || 1);
     renderer.render(scene, camera);
     fpsN++; fpsT += dt; if (fpsT > 1) { app.stats = { fps: Math.round(fpsN / fpsT), tris, calls: renderer.info.render.calls }; fpsN = 0; fpsT = 0; }
