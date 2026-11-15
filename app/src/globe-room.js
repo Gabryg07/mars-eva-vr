@@ -6,20 +6,21 @@ import * as THREE from 'three';
 import { R, H, DOOR_W, DOOR_H, TUN2, R2, XC } from './habitat.js';
 import { Panel, rrect, text, wrap } from './ui.js';
 import { lang } from './i18n.js';
+import { PATHS } from './globe-paths.js';
 const L = o => (typeof o === 'string' ? o : o[lang.cur] ?? o.it);
-const GR = 1.5, GY = 2.05, RAIL = 2.4, SPIN = 2 * Math.PI / 75, ACC = '#ffb36b';
+const GR = 1.5, GY = 2.05, RAIL = 2.4, SPIN = 2 * Math.PI / 75, ACC = '#ffb36b', KX = 40, RM = 3389.5;   // KX: traverses drawn 40 times larger, or they would be a few millimetres long
 // landers: landing site, planetocentric latitude and east longitude (degrees); h: stalk height, so close sites do not overlap
 export const LANDERS = [
   { id: 'viking', name: 'Viking 1', year: 1976, lat: 22.27, lon: -47.95, h: 0.22 },
   { id: 'viking', name: 'Viking 2', year: 1976, lat: 47.64, lon: -134.29, h: 0.22 },
   { id: 'pathfinder', name: 'Pathfinder', year: 1997, lat: 19.13, lon: -33.22, h: 0.62 },
-  { id: 'spirit', name: 'Spirit', year: 2004, lat: -14.57, lon: 175.47, h: 0.25 },
-  { id: 'opportunity', name: 'Opportunity', year: 2004, lat: -1.95, lon: -5.53, h: 0.25 },
+  { id: 'spirit', name: 'Spirit', year: 2004, lat: -14.57, lon: 175.47, h: 0.25, col: 0x9cff8a },
+  { id: 'opportunity', name: 'Opportunity', year: 2004, lat: -1.95, lon: -5.53, h: 0.25, col: 0x7fe0ff },
   { id: 'phoenix', name: 'Phoenix', year: 2008, lat: 68.22, lon: -125.75, h: 0.55 },
-  { id: 'curiosity', name: 'Curiosity', year: 2012, lat: -4.59, lon: 137.44, h: 0.22 },
+  { id: 'curiosity', name: 'Curiosity', year: 2012, lat: -4.59, lon: 137.44, h: 0.22, col: 0xffd166 },
   { id: 'insight', name: 'InSight', year: 2018, lat: 4.5, lon: 135.62, h: 0.62 },
-  { id: 'perseverance', name: 'Perseverance', year: 2021, lat: 18.44, lon: 77.45, h: 0.22 },
-  { id: 'ingenuity', name: 'Ingenuity', year: 2021, lat: 18.44, lon: 77.45, h: 0.62 },
+  { id: 'perseverance', name: 'Perseverance', year: 2021, lat: 18.44, lon: 77.45, h: 0.22, col: 0xff7a59 },
+  { id: 'ingenuity', name: 'Ingenuity', year: 2021, lat: 18.44, lon: 77.45, h: 0.62, col: 0xd29bff },
 ];
 // orbiters: real inclination (degrees); r: drawn orbit radius (m, not to scale); T: seconds per turn in the room
 export const ORBITERS = [
@@ -35,6 +36,25 @@ export const FLYBYS = [
   { id: 'mariner4', name: 'Mariner 4', year: '1965', d: 2.25, T: 40, yaw: 30, y: 0.5 },
   { id: 'mariner67', name: 'Mariner 6 e 7', name_en: 'Mariner 6 and 7', year: '1969', d: 2.2, T: 46, yaw: 150, y: -0.4 },
 ];
+// a flat strip lying on the globe along a list of unit normals
+function ribbon(ns, w, col) {
+  const pos = [], idx = [], t = new THREE.Vector3(), sd = new THREE.Vector3();
+  ns.forEach((n, i) => { const a = ns[Math.max(0, i - 1)], b = ns[Math.min(ns.length - 1, i + 1)]; t.subVectors(b, a); sd.crossVectors(n, t).normalize().multiplyScalar(w / 2); if (!isFinite(sd.x)) sd.set(0, 0, 0);
+    const p = n.clone().multiplyScalar(GR + 0.003); pos.push(p.x + sd.x, p.y + sd.y, p.z + sd.z, p.x - sd.x, p.y - sd.y, p.z - sd.z); if (i) { const j = 2 * i; idx.push(j - 2, j - 1, j, j - 1, j + 1, j); } });
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx);
+  return new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2 }));
+}
+// night sky for the dome: stars spread evenly over the half sphere, a faint Milky Way band, a few coloured stars
+function skyTex() {
+  const W = 4096, H = 2048, c = document.createElement('canvas'); c.width = W; c.height = H / 2; const x = c.getContext('2d'); x.fillStyle = '#03040a'; x.fillRect(0, 0, W, H / 2);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647, yOf = th => th / Math.PI * H;   // only the top half of the sphere is used, so the canvas holds just that
+  for (let i = 0; i < 420; i++) { const u = rnd(), th = 0.35 + rnd() * 1.1, yy = yOf(th) + Math.sin(u * Math.PI * 2) * 120, xx = u * W, sx = 1 / Math.max(0.2, Math.sin(th)), rr = 40 + rnd() * 70;   // Milky Way: soft glow along a wavy band
+    const g = x.createRadialGradient(0, 0, 0, 0, 0, rr); g.addColorStop(0, 'rgba(150,160,215,0.06)'); g.addColorStop(1, 'rgba(150,160,215,0)'); x.save(); x.translate(xx, yy); x.scale(sx, 1); x.fillStyle = g; x.fillRect(-rr, -rr, 2 * rr, 2 * rr); x.restore(); }
+  for (let i = 0; i < 6000; i++) { const th = Math.acos(1 - rnd()), yy = yOf(th), xx = rnd() * W, m = rnd() ** 4, r = 0.5 + m * 1.8, sx = 1 / Math.max(0.12, Math.sin(th)), hue = rnd(), al = 0.25 + m * 0.75;
+    x.fillStyle = hue < 0.07 ? `rgba(255,200,160,${al})` : hue < 0.14 ? `rgba(180,205,255,${al})` : `rgba(255,255,255,${al})`; x.beginPath(); x.ellipse(xx, yy, r * sx, r, 0, 0, Math.PI * 2); x.fill();
+    if (m > 0.6) { const g = x.createRadialGradient(xx, yy, 0, xx, yy, r * 4); g.addColorStop(0, 'rgba(255,255,255,0.25)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(xx - r * 4 * sx, yy - r * 4, r * 8 * sx, r * 8); } }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; t.repeat.y = 2; t.offset.y = -1; return t;
+}
 const NM = c => (lang.cur === 'en' && c.name_en) || c.name;
 const normal = (la, lo) => { la *= Math.PI / 180; lo *= Math.PI / 180; return new THREE.Vector3(Math.cos(la) * Math.cos(lo), Math.sin(la), -Math.cos(la) * Math.sin(lo)); };
 
@@ -58,7 +78,7 @@ export class GlobeRoom {
     add(rg, new THREE.CylinderGeometry(R2, R2, HH, 56, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ map: wallT, side: THREE.BackSide }), 0, HH / 2);
     add(rg, new THREE.CylinderGeometry(R2 + 0.03, R2 + 0.03, HH - DOOR_H, 6, 1, true, Math.PI - a, 2 * a), col(0xbfb2a2), 0, DOOR_H + (HH - DOOR_H) / 2);
     const dome = add(rg, new THREE.SphereGeometry(R2 + 0.06, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xd9d0c4 }), 0, HH); dome.scale.y = 0.34;
-    const ceil = add(rg, new THREE.SphereGeometry(R2, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x0d0e13, side: THREE.BackSide }), 0, HH); ceil.scale.y = 0.32;
+    const ceil = add(rg, new THREE.SphereGeometry(R2, 64, 24, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ map: skyTex(), side: THREE.BackSide }), 0, HH); ceil.scale.y = 0.32;
     add(rg, new THREE.CircleGeometry(R2, 56).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x24262c }), 0, 0.005);
     add(rg, new THREE.RingGeometry(RAIL + 0.15, RAIL + 0.3, 64).rotateX(-Math.PI / 2), col(0x3a3d45), 0, 0.008);
     add(rg, new THREE.CylinderGeometry(R2 + 0.25, R2 + 0.4, 3.2, 56, 1, true), col(0x6b5a4c), 0, -1.6);
@@ -77,6 +97,8 @@ export class GlobeRoom {
       const st = add(spin, new THREE.CylinderGeometry(0.006, 0.006, l.h, 5).translate(0, l.h / 2, 0), stalkM); st.position.copy(n).multiplyScalar(GR); st.quaternion.copy(q);
       const dot = add(spin, new THREE.CircleGeometry(0.025, 16).rotateX(-Math.PI / 2), dotM); dot.position.copy(n).multiplyScalar(GR + 0.004); dot.quaternion.copy(q);
       const sp = this.label(l, 0.42); sp.position.copy(n).multiplyScalar(GR + l.h + 0.2); spin.add(sp);
+      const tr = PATHS[l.id]; if (tr) { const [la0, lo0] = tr.origin || [l.lat, l.lon], c = Math.cos(la0 * Math.PI / 180), k = KX / RM * 180 / Math.PI;
+        spin.add(ribbon(tr.pts.map(([nn, ee]) => normal(la0 + nn * k, lo0 + ee * k / c)), l.id === 'ingenuity' ? 0.008 : 0.014, l.col)); }
     }
     // orbiters: each orbit is a tilted ring that does not turn with the planet
     this.moving = [];
@@ -109,9 +131,9 @@ export class GlobeRoom {
     this.sign.draw((c, W, Hh) => { rrect(c, 2, 2, W - 4, Hh - 4, 16); c.fillStyle = '#1b1714'; c.fill(); text(c, L({ it: 'SALA MISSIONI →', en: 'MISSION ROOM →' }), W / 2, Hh * 0.68, 64, ACC, 700, 'center'); });
     this.info.draw((c, W, Hh) => { rrect(c, 4, 4, W - 8, Hh - 8, 22); c.fillStyle = 'rgba(14,10,8,0.96)'; c.fill(); c.lineWidth = 5; c.strokeStyle = ACC; c.stroke();
       text(c, L({ it: 'LE MISSIONI NASA SU MARTE', en: 'NASA MISSIONS TO MARS' }), 30, 62, 36, ACC, 700);
-      let y = wrap(c, L({ it: `Sul globo, ogni lander e rover sta nel punto esatto in cui è atterrato (${LANDERS.length} veicoli, dal 1976 a oggi). Le sonde in orbita girano attorno al pianeta con l'inclinazione reale della loro orbita; le linee tratteggiate sono i sorvoli di Mariner 4, 6 e 7.`, en: `On the globe every lander and rover stands exactly where it landed (${LANDERS.length} vehicles, from 1976 to today). The orbiters circle the planet at their real orbit inclination; the dashed lines are the Mariner 4, 6 and 7 flybys.` }), 30, 116, W - 60, 25, 34, '#f2e9e1');
-      y = wrap(c, L({ it: 'Le quote non sono in scala: in proporzione al globo, la maggior parte delle orbite passerebbe a pochi centimetri dalla superficie. Il globo fa un giro ogni 75 secondi.', en: 'Heights are not to scale: in proportion to the globe, most orbits would pass a few centimetres above the surface. The globe turns once every 75 seconds.' }), 30, y + 14, W - 60, 22, 30, '#d9c4b2');
-      text(c, L({ it: 'Mappa: Viking MDIM 2.1 (NASA/USGS) · immagini dai modelli 3D NASA della mostra all\'esterno', en: 'Map: Viking MDIM 2.1 (NASA/USGS) · pictures from the NASA 3D models in the outdoor exhibition' }), 30, Hh - 28, 18, '#a8988a', 400); });
+      let y = wrap(c, L({ it: `Sul globo, ogni lander e rover sta nel punto esatto in cui è atterrato (${LANDERS.length} veicoli, dal 1976 a oggi). Le sonde in orbita girano attorno al pianeta con l'inclinazione reale della loro orbita; le linee tratteggiate sono i sorvoli di Mariner 4, 6 e 7.`, en: `On the globe every lander and rover stands exactly where it landed (${LANDERS.length} vehicles, from 1976 to today). The orbiters circle the planet at their real orbit inclination; the dashed lines are the Mariner 4, 6 and 7 flybys.` }), 30, 112, W - 60, 23, 31, '#f2e9e1');
+      y = wrap(c, L({ it: 'Le quote non sono in scala: in proporzione al globo, la maggior parte delle orbite passerebbe a pochi centimetri dalla superficie. Le linee colorate a terra sono i percorsi reali dei rover (Spirit, Opportunity, Curiosity, Perseverance) e i voli di Ingenuity, ingranditi 40 volte: in scala sarebbero lunghi pochi millimetri. Il globo fa un giro ogni 75 secondi.', en: 'Heights are not to scale: in proportion to the globe, most orbits would pass a few centimetres above the surface. The coloured lines on the ground are the real rover traverses (Spirit, Opportunity, Curiosity, Perseverance) and Ingenuity\'s flights, enlarged 40 times: to scale they would be a few millimetres long. The globe turns once every 75 seconds.' }), 30, y + 12, W - 60, 20, 27, '#d9c4b2');
+      text(c, L({ it: 'Mappa Viking MDIM 2.1 (NASA/USGS) · percorsi: PDS e mappe NASA MMGIS · immagini dai modelli 3D NASA', en: 'Viking MDIM 2.1 map (NASA/USGS) · traverses: PDS and NASA MMGIS maps · pictures from NASA 3D models' }), 30, Hh - 28, 16, '#a8988a', 400); });
   }
   update(dt) {
     this.spin.rotation.y += dt * SPIN;

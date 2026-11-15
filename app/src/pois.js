@@ -50,11 +50,12 @@ export class Pois {
       const col = it.p.kind === 'base' ? COL.base : m.visited.has(it.p.id) ? COL.done : COL.science; it.beacon.material.color.setHex(col); it.beacon.material.opacity = tgt && tgt.id === it.p.id ? 0.8 : 0.4;
       const ts = Math.max(1, d3 / 28); it.tag.mesh.scale.setScalar(ts); it.tag.mesh.position.y = 5 + 2.2 * ts; it.tag.mesh.rotation.set(0, face, 0); it.tag.mesh.visible = d3 > 14; if (this.app.player.lift) this.app.camera.getWorldQuaternion(it.tag.mesh.quaternion); else it.tag.mesh.rotation.x = 0;
       // the info card appears beside the astronaut on arrival (at reading distance, slightly to the right so it never blocks the way) and stays put
-      if (d < 11 && !it.anchored && it.p.title && !this.app.player.lift && this.app.started) { const a = this.app.player.headYaw() - 0.42, ux = -Math.sin(a), uz = -Math.cos(a), r = 2.9;
+      const ind = this.app.habitat?.indoors(cam.x, cam.z);   // no mission cards inside the base
+      if (d < 11 && !ind && !it.anchored && it.p.title && !this.app.player.lift && this.app.started) { const a = this.app.player.headYaw() - 0.42, ux = -Math.sin(a), uz = -Math.cos(a), r = 2.9;
         it.card.mesh.position.set(cam.x + ux * r - it.g.position.x, cam.y + 0.3 - it.g.position.y, cam.z + uz * r - it.g.position.z); it.card.mesh.rotation.y = Math.atan2(-ux, -uz); it.anchored = true;
         if (it.gal) { const a2 = a - 0.8, vx = -Math.sin(a2), vz = -Math.cos(a2); it.gal.mesh.position.set(cam.x + vx * r - it.g.position.x, cam.y + 0.3 - it.g.position.y, cam.z + vz * r - it.g.position.z); it.gal.mesh.rotation.y = Math.atan2(-vx, -vz); } }
       if (d > 24) it.anchored = false;
-      it.card.mesh.visible = !!it.anchored; if (it.gal) it.gal.mesh.visible = !!it.anchored;
+      it.card.mesh.visible = !!it.anchored && !ind; if (it.gal) it.gal.mesh.visible = !!it.anchored && !ind;
     }
   }
 }

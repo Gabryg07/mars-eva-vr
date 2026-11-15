@@ -2,10 +2,11 @@
 // (NASA PDS, mars2020_supercam, data_calibrated_audio, "atm" passive recordings). They play one after another in a loop,
 // crossfaded, only when the astronaut is outside the habitat. Processing for playback: 18 Hz-4 kHz band, loudness levelled.
 // Most of the wind energy is below 100 Hz, so on small speakers it is a low rumble: that is what it really sounds like.
-const CLIPS = ['mars_sol0004', 'mars_sol0685', 'mars_sol0690', 'mars_sol0697'], FADE = 3, VOL = 0.8;
+const CLIPS = ['mars_sol0004', 'mars_sol0685', 'mars_sol0690', 'mars_sol0697'], FADE = 3;
 
 export class Ambience {
-  constructor(root) { this.root = root; this.on = false; this.i = 0; this.buf = []; this.out = 0; }
+  constructor(root) { this.root = root; this.on = false; this.i = 0; this.buf = []; this.out = 0; this.vol = 0.6; }
+  setVolume(v) { this.vol = v; }   // 0..1, from the start menu
   // browsers start audio only after a gesture: call this from a click, key or the VR button
   start() {
     if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
@@ -23,7 +24,7 @@ export class Ambience {
   }
   // outside: fade the master up; inside the habitat: fade it down
   update(dt, outside) {
-    if (!this.ctx) return; const target = outside ? VOL : 0; this.out += (target - this.out) * Math.min(1, dt * 1.5);
+    if (!this.ctx) return; const target = outside ? this.vol * 0.8 : 0; this.out += (target - this.out) * Math.min(1, dt * 1.5);
     this.master.gain.setTargetAtTime(this.out, this.ctx.currentTime, 0.05);
   }
 }
