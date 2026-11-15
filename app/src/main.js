@@ -19,6 +19,7 @@ import { Heli } from './heli.js';
 import { Ambience } from './ambience.js';
 import { GlobeRoom } from './globe-room.js';
 import { BaseDeco } from './base-deco.js';
+import { SampleGame } from './game.js';
 import { T, lang, setLang } from './i18n.js';
 
 const Q = new URLSearchParams(location.search);
@@ -107,7 +108,7 @@ async function boot() {
   app.ground = (x, z) => { for (const r of app.rings) if (r.field.contains(x, z)) return r.field.height(x, z) - h0; return null; };
   app.slope = (x, z) => { for (const r of app.rings) if (r.field.contains(x, z, r.ring.res * 2)) return r.field.slopeDeg(x, z, r.ring.res); return 0; };
   const bp = site.pois.find(p => p.kind === 'base'), fp = site.pois.find(p => p.id === site.legs[0].to), hab = app.habitat = new Habitat(app, bp.x, -bp.y, Math.atan2(-(fp.x - bp.x), fp.y - bp.y));
-  app.siteId = SITE; const room = app.room = new ResearchRoom(app, hab, import.meta.env.BASE_URL); const museum = app.museum = new Museum(app, hab, import.meta.env.BASE_URL); const heli = app.heli = new Heli(app, import.meta.env.BASE_URL); const amb = app.ambience = new Ambience(import.meta.env.BASE_URL); const groom = app.globeRoom = new GlobeRoom(app, hab, import.meta.env.BASE_URL); const deco = app.deco = new BaseDeco(app, hab);
+  app.siteId = SITE; const room = app.room = new ResearchRoom(app, hab, import.meta.env.BASE_URL); const museum = app.museum = new Museum(app, hab, import.meta.env.BASE_URL); const heli = app.heli = new Heli(app, import.meta.env.BASE_URL); const amb = app.ambience = new Ambience(import.meta.env.BASE_URL); const groom = app.globeRoom = new GlobeRoom(app, hab, import.meta.env.BASE_URL); const deco = app.deco = new BaseDeco(app, hab); const game = app.game = new SampleGame(app, import.meta.env.BASE_URL);
   for (const ev of ['pointerdown', 'keydown', 'touchend']) addEventListener(ev, () => amb.start(), true);   // audio may only start after a gesture
   app.walkGround = (x, z) => hab.groundY(x, z) ?? app.ground(x, z);
   const player = app.player = new Player(renderer, camera, scene, app.walkGround, renderer.domElement);
@@ -133,13 +134,14 @@ async function boot() {
   // data only: no mission clock, the airlock stays shut, the astronaut walks straight into the research room
   app.explore = () => { app.dataMode = true; menu.close(); const [x, z] = hab.roomPos(); player.placeAt(x, z, hab.roomYaw()); };
   app.setLayer(+(Q.get('layer') ?? 0)); if (Q.get('track')) app.toggleTrack();
-  app.reset = () => { if (player.lift) player.toggleOverview(); mission.reset(); player.placeAt(sx, sz, startYaw); app.started = false; app.dataMode = false; menu.show(true); globe.reset(); hab.redraw(); };
+  app.startGame = () => { app.start(); game.begin(); };
+  app.reset = () => { game.end(); if (player.lift) player.toggleOverview(); mission.reset(); player.placeAt(sx, sz, startYaw); app.started = false; app.dataMode = false; menu.show(true); globe.reset(); hab.redraw(); };
   // controls: A/B on the right controller, X/Y on the left; same actions on the keyboard
-  player.onButton = (hand, i) => { if (i === 0 && menu.open) { menu.click(); return; } if (i === 0 && room.click()) return; if (i === 0 && heli.near()) { heli.play(); return; } if (i === 1 && globe.busy(hand)) return; if (hand === 'right' && i === 0) player.toggleOverview(); else if (hand === 'right' && i === 1) arm.toggle(); else if (i === 0 || i === 1) return; else if (hand === 'right' && i === 4) app.setLayer(app.layer + 1); else if (hand === 'right' && i === 5) app.toggleTrack(); else if (hand === 'left' && i === 5) app.reset(); else if (hand === 'left' && i === 4) credits.toggle(); };
+  player.onButton = (hand, i) => { if (i === 0 && menu.open) { menu.click(); return; } if (i === 0 && game.press()) return; if (i === 0 && room.click()) return; if (i === 0 && heli.near()) { heli.play(); return; } if (i === 1 && globe.busy(hand)) return; if (hand === 'right' && i === 0) player.toggleOverview(); else if (hand === 'right' && i === 1) arm.toggle(); else if (i === 0 || i === 1) return; else if (hand === 'right' && i === 4) app.setLayer(app.layer + 1); else if (hand === 'right' && i === 5) app.toggleTrack(); else if (hand === 'left' && i === 5) app.reset(); else if (hand === 'left' && i === 4) credits.toggle(); };
   addEventListener('keydown', e => { const m = /^Digit([1-9])$/.exec(e.code); if (m && +m[1] <= app.LAYERS.length) app.setLayer(+m[1] - 1);
     if (e.code === 'KeyP' && heli.near(6)) heli.play(); if (e.code === 'KeyL') app.setLayer(app.layer + 1); if (e.code === 'KeyT') app.toggleTrack(); if (e.code === 'KeyR') app.reset(); if (e.code === 'KeyH') hud.panel.mesh.visible = !hud.panel.mesh.visible; if (e.code === 'KeyC') credits.toggle(); if (e.code === 'KeyM') player.toggleOverview(); if (e.code === 'KeyI') arm.toggle(); if (e.code === 'KeyV') helmet.off = !helmet.off; if (e.code === 'Enter' && menu.open) app.start(); });
   renderer.domElement.addEventListener('mousemove', e => menu.mouse.set(e.clientX / innerWidth * 2 - 1, 1 - e.clientY / innerHeight * 2));
-  player.onClick = () => !renderer.xr.isPresenting && (menu.open ? menu.click() : room.click() || (heli.near() && (heli.play(), true)));   // a click on a menu button is not a request to capture the mouse
+  player.onClick = () => !renderer.xr.isPresenting && (menu.open ? menu.click() : game.press() || room.click() || (heli.near() && (heli.play(), true)));   // a click on a menu button is not a request to capture the mouse
   const vr = VRButton.createButton(renderer, { optionalFeatures: ['local-floor', 'bounded-floor'] }); document.body.appendChild(vr);
   helpText(); if (Q.get('data')) app.explore(); else if (Q.get('start') || Q.get('x')) app.start();
   $('boot').style.opacity = 0; setTimeout(() => $('boot').remove(), 700);
@@ -148,7 +150,7 @@ async function boot() {
     const dt = Math.min(clock.getDelta(), 0.1); shared.uTime.value += dt;
     menu.update(); player.update(dt); if (app.started) mission.idle(dt);
     camera.updateMatrixWorld(); camera.getWorldPosition(cam); shared.uCam.value.copy(cam); sky.position.copy(cam); camera.getWorldDirection(dir);
-    if (!player.lift && app.started) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam); room.update(dt, cam); museum.update(dt, cam); heli.update(dt, cam); groom.update(dt); deco.update(dt); amb.update(dt, !hab.indoors(cam.x, cam.z));
+    if (!player.lift && app.started && !game.active) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam); room.update(dt, cam); museum.update(dt, cam); heli.update(dt, cam); groom.update(dt); deco.update(dt); game.update(dt); amb.update(dt, !hab.indoors(cam.x, cam.z));
     const tris = terrain.update(cam, dir, renderer.xr.isPresenting ? 0.2 : 0.35, app.baseRes || 1);
     renderer.render(scene, camera);
     fpsN++; fpsT += dt; if (fpsT > 1) { app.stats = { fps: Math.round(fpsN / fpsT), tris, calls: renderer.info.render.calls }; fpsN = 0; fpsT = 0; }

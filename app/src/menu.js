@@ -16,8 +16,9 @@ export class Menu {
       ...row(392, 'rover', [{ label: () => T('sì'), on: () => this.set.rover, act: () => this.apply({ rover: true }) }, { label: () => T('no'), on: () => !this.set.rover, act: () => this.apply({ rover: false }) }]),
       ...row(490, 'quick', [{ label: () => T('realistica'), on: () => !this.set.quick, act: () => this.apply({ quick: false }) }, { label: () => T('rapida'), on: () => this.set.quick, act: () => this.apply({ quick: true }) }]),
       { x: 520, y: 588, w: 616, h: 76, key: 'vol', slider: true, label: () => '', on: () => false, act: () => this.setVol((this.hx - 520) / 616) },
-      { x: 58, y: 698, w: 540, h: 96, key: 'start', primary: true, label: () => T('INIZIA LA MISSIONE'), on: () => false, act: () => app.start() },
-      { x: 618, y: 698, w: 540, h: 96, key: 'data', primary: true, alt: true, label: () => T('SOLO DATI: SALA RICERCA'), on: () => false, act: () => app.explore() },
+      { x: 58, y: 698, w: 356, h: 96, key: 'start', primary: true, label: () => T('INIZIA LA MISSIONE'), on: () => false, act: () => app.start() },
+      { x: 430, y: 698, w: 356, h: 96, key: 'game', primary: true, game: true, label: () => T('DEMO CAMPIONI'), on: () => false, act: () => app.startGame() },
+      { x: 802, y: 698, w: 356, h: 96, key: 'data', primary: true, alt: true, label: () => T('SOLO DATI'), on: () => false, act: () => app.explore() },
     ];
     try { const v = parseFloat(localStorage.getItem('marswalk.vol')); if (v >= 0 && v <= 1) this.set.vol = v; } catch (e) { }
     this.set.vol ??= 0.6; app.ambience?.setVolume(this.set.vol); this.draw();
@@ -36,9 +37,9 @@ export class Menu {
       for (const b of this.buttons) { const on = b.on(), hov = this.hover === b; if (b.slider) { const v = this.set.vol, cy = b.y + b.h / 2; rrect(c, b.x, cy - 9, b.w - 120, 18, 9); c.fillStyle = 'rgba(255,255,255,0.15)'; c.fill(); rrect(c, b.x, cy - 9, Math.max(18, (b.w - 120) * v), 18, 9); c.fillStyle = '#7fe0ff'; c.fill();
           c.beginPath(); c.arc(b.x + (b.w - 120) * v, cy, hov ? 24 : 20, 0, Math.PI * 2); c.fillStyle = '#fff'; c.fill(); text(c, v ? Math.round(v * 100) + '%' : T('muto'), b.x + b.w, cy + 11, 30, '#fff', 700, 'right'); continue; }
         rrect(c, b.x, b.y, b.w, b.h, 18);
-        c.fillStyle = b.alt ? (hov ? '#b3efff' : '#7fe0ff') : b.primary ? (hov ? '#ffb37a' : '#ff9a52') : on ? '#7fe0ff' : hov ? 'rgba(127,224,255,0.3)' : 'rgba(255,255,255,0.1)'; c.fill(); if (hov) { c.lineWidth = 4; c.strokeStyle = '#fff'; c.stroke(); }
-        text(c, b.label(), b.x + b.w / 2, b.y + b.h / 2 + (b.primary ? 14 : 11), b.primary ? 34 : 30, b.primary || on ? '#1a0f0a' : '#fff', 700, 'center'); }
-      let y = wrap(c, T("Missione: esci dall'airlock, segui la linea azzurra e rientra nella base. Solo dati: entri nella sala con cartine, foto e documentazione per la ricerca.") + ' ' + T('A sinistra: il globo di Marte. Prendilo con il grilletto laterale, con due mani lo ingrandisci.'), 58, 840, W - 116, 22, 29, '#fff');
+        c.fillStyle = b.game ? (hov ? '#ffe39a' : '#ffd166') : b.alt ? (hov ? '#b3efff' : '#7fe0ff') : b.primary ? (hov ? '#ffb37a' : '#ff9a52') : on ? '#7fe0ff' : hov ? 'rgba(127,224,255,0.3)' : 'rgba(255,255,255,0.1)'; c.fill(); if (hov) { c.lineWidth = 4; c.strokeStyle = '#fff'; c.stroke(); }
+        text(c, b.label(), b.x + b.w / 2, b.y + b.h / 2 + (b.primary ? 10 : 11), b.primary ? 26 : 30, b.primary || on ? '#1a0f0a' : '#fff', 700, 'center'); }
+      let y = wrap(c, T("Missione: esci dall'airlock, segui la linea azzurra e rientra nella base. Demo: recupera le 10 provette lasciate da Perseverance a Three Forks. Solo dati: sala con cartine, foto e documentazione.") + ' ' + T('A sinistra: il globo di Marte. Prendilo con il grilletto laterale, con due mani lo ingrandisci.'), 58, 840, W - 116, 22, 29, '#fff');
       text(c, T('Punta e premi il grilletto · al PC clic del mouse o Invio'), W / 2, H - 26, 20, '#d9c4b2', 400, 'center');
     });
   }
