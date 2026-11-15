@@ -2,6 +2,7 @@
 // wants to study the site: global maps from NASA Mars Trek, close-ups of Jezero from our own layers, the rover's photos
 // at each stop, and a kiosk with the mission documentation and the links to every source. Grouped by topic.
 import * as THREE from 'three';
+import { hullTex, domeTex } from './base-deco.js';
 import { Panel, rrect, text, wrap } from './ui.js';
 import { lang, P } from './i18n.js';
 import { R, H, DOOR_W, DOOR_H, TUN2, R2, XC } from './habitat.js';
@@ -88,10 +89,10 @@ export class ResearchRoom {
     const rg = this.rg = new THREE.Group(); rg.position.set(s * XC, 0, 0); rg.rotation.y = s * Math.PI / 2; g.add(rg); const HH = H + 0.4;
     const a = Math.asin(DOOR_W / 2 / R2), wallT = (() => { const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const x = c.getContext('2d'), gr = x.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#2a3036'); gr.addColorStop(1, '#1b1f24'); x.fillStyle = gr; x.fillRect(0, 0, 1024, 256);
       x.strokeStyle = 'rgba(127,224,255,0.18)'; x.lineWidth = 3; for (let i = 0; i <= 24; i++) { x.beginPath(); x.moveTo(i * 1024 / 24, 0); x.lineTo(i * 1024 / 24, 256); x.stroke(); } x.fillStyle = '#7fe0ff'; x.fillRect(0, 205, 1024, 4); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; return t; })();
-    add(rg, new THREE.CylinderGeometry(R2 + 0.06, R2 + 0.06, HH, 56, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ color: 0xd9d0c4 }), 0, HH / 2);
+    add(rg, new THREE.CylinderGeometry(R2 + 0.06, R2 + 0.06, HH, 56, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ map: hullTex(2) }), 0, HH / 2);
     add(rg, new THREE.CylinderGeometry(R2, R2, HH, 56, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ map: wallT, side: THREE.BackSide }), 0, HH / 2);
     add(rg, new THREE.CylinderGeometry(R2 + 0.03, R2 + 0.03, HH - DOOR_H, 6, 1, true, Math.PI - a, 2 * a), col(0xbfb2a2), 0, DOOR_H + (HH - DOOR_H) / 2);
-    const dome = add(rg, new THREE.SphereGeometry(R2 + 0.06, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xd9d0c4 }), 0, HH); dome.scale.y = 0.34;
+    const dome = add(rg, new THREE.SphereGeometry(R2 + 0.06, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ map: domeTex() }), 0, HH); dome.scale.y = 0.34;
     const ceil = add(rg, new THREE.SphereGeometry(R2, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x343b42, side: THREE.BackSide }), 0, HH); ceil.scale.y = 0.32;
     add(rg, new THREE.RingGeometry(R2 * 0.3, R2 * 0.35, 48).rotateX(Math.PI / 2), col(0xe8f8ff), 0, HH + R2 * 0.35 * 0.85);
     add(rg, new THREE.CircleGeometry(R2, 56).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x3b4148 }), 0, 0.005);

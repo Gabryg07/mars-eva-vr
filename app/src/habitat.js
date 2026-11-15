@@ -2,6 +2,7 @@
 // Scenario element (not NASA data): its position is the "base" point of the site file.
 import * as THREE from 'three';
 import { T, num } from './i18n.js';
+import { hullTex, domeTex, ceilTex, innerTex } from './base-deco.js';
 export const R = 4.2, H = 2.6, DOOR_W = 1.5, DOOR_H = 2.1, TUN = 2.4, RAMP = 2.2, TUN2 = 1.6, R2 = 7.0, XC = R + TUN2 + R2 - 0.3;   // TUN2/R2/XC: corridor and research room
 function tex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t; }
 const panels = (base, line, cols, rows, extra) => tex(1024, 256, (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, base[0]); g.addColorStop(1, base[1]); c.fillStyle = g; c.fillRect(0, 0, w, h);
@@ -15,15 +16,17 @@ export class Habitat {
     this.floorY = top + 0.12; const g = this.group = new THREE.Group(); g.position.set(cx, this.floorY, cz); g.rotation.y = yaw;
     const mat = (map, side = THREE.DoubleSide) => new THREE.MeshBasicMaterial({ map, side }), col = (c, side = THREE.DoubleSide) => new THREE.MeshBasicMaterial({ color: c, side });
     const a = Math.asin(DOOR_W / 2 / R), add = (geo, m, x = 0, y = 0, z = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
-    const outT = panels(['#e9e2d8', '#b9a795'], 'rgba(60,40,30,0.35)', 24, 2), inT = panels(['#dfe4e8', '#aab2ba'], 'rgba(40,50,60,0.3)', 24, 3, (c, w, h) => { c.fillStyle = '#ff9a52'; c.fillRect(0, h * 0.62, w, 6); });
-    outT.wrapS = inT.wrapS = THREE.RepeatWrapping;
+    const inT = innerTex();
     const P2 = Math.PI / 2, arcs = [[3 * P2 + a, 5 * P2 - a], [P2 + a, 2 * P2 - a], [2 * P2 + a, 3 * P2 - a]];   // openings: door (-z), research room and mission room (±x)
-    for (const [t0, t1] of arcs) { add(new THREE.CylinderGeometry(R + 0.06, R + 0.06, H, 24, 1, true, t0, t1 - t0), mat(outT, THREE.FrontSide), 0, H / 2); add(new THREE.CylinderGeometry(R, R, H, 24, 1, true, t0, t1 - t0), mat(inT, THREE.BackSide), 0, H / 2); }
+    const hullT = hullTex(1); for (const [t0, t1] of arcs) { add(new THREE.CylinderGeometry(R + 0.06, R + 0.06, H, 24, 1, true, t0, t1 - t0), mat(hullT, THREE.FrontSide), 0, H / 2); add(new THREE.CylinderGeometry(R, R, H, 24, 1, true, t0, t1 - t0), mat(inT, THREE.BackSide), 0, H / 2); }
     for (const t of [Math.PI, P2, 3 * P2]) add(new THREE.CylinderGeometry(R + 0.03, R + 0.03, H - DOOR_H, 6, 1, true, t - a, 2 * a), col(0xbfb2a2), 0, DOOR_H + (H - DOOR_H) / 2);
-    const dome = add(new THREE.SphereGeometry(R + 0.06, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2), col(0xd9d0c4, THREE.FrontSide), 0, H); dome.scale.y = 0.42;
-    const ceil = add(new THREE.SphereGeometry(R, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2), col(0xc9d0d6, THREE.BackSide), 0, H); ceil.scale.y = 0.4;
+    const dome = add(new THREE.SphereGeometry(R + 0.06, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(domeTex(), THREE.FrontSide), 0, H); dome.scale.y = 0.42;
+    const ceil = add(new THREE.SphereGeometry(R, 40, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(ceilTex(), THREE.BackSide), 0, H); ceil.scale.y = 0.4;
     add(new THREE.CircleGeometry(R * 0.35, 32).rotateX(Math.PI / 2), col(0xfff6e0), 0, H + R * 0.4 * 0.93);                         // ceiling light
-    const floorT = tex(512, 512, (c, w, h) => { c.fillStyle = '#4a4f55'; c.fillRect(0, 0, w, h); c.strokeStyle = '#30343a'; c.lineWidth = 4; for (let i = 0; i <= 8; i++) { c.beginPath(); c.moveTo(i * 64, 0); c.lineTo(i * 64, h); c.moveTo(0, i * 64); c.lineTo(w, i * 64); c.stroke(); } });
+    const floorT = tex(1024, 1024, (c, w, h) => { c.fillStyle = '#2b3036'; c.fillRect(0, 0, w, h); const n = 10, d = w / n;   // raised-floor tiles with bevels, vent grilles and cyan inlays
+      for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { const x = i * d, y = j * d, gr = c.createLinearGradient(x, y, x + d, y + d); gr.addColorStop(0, '#4d545c'); gr.addColorStop(1, '#3a4047'); c.fillStyle = gr; c.fillRect(x + 4, y + 4, d - 8, d - 8);
+        c.strokeStyle = 'rgba(255,255,255,0.08)'; c.lineWidth = 2; c.strokeRect(x + 6, y + 6, d - 12, d - 12); if ((i * 7 + j * 3) % 5 === 0) { c.fillStyle = '#23272c'; for (let k = 0; k < 6; k++) c.fillRect(x + 18, y + 20 + k * 12, d - 36, 5); } }
+      c.fillStyle = 'rgba(61,240,255,0.55)'; c.fillRect(w / 2 - 2, 0, 4, h); c.fillRect(0, h / 2 - 2, w, 4); });
     add(new THREE.CircleGeometry(R, 48).rotateX(-Math.PI / 2), mat(floorT), 0, 0.005);
     add(new THREE.CylinderGeometry(R + 0.25, R + 0.4, 1.6, 48, 1, true), col(0x6b5a4c), 0, -0.8);
     // airlock tunnel (towards local -z), ramp down to the ground

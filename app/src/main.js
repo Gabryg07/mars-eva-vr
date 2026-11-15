@@ -18,6 +18,7 @@ import { Museum } from './museum.js';
 import { Heli } from './heli.js';
 import { Ambience } from './ambience.js';
 import { GlobeRoom } from './globe-room.js';
+import { BaseDeco } from './base-deco.js';
 import { T, lang, setLang } from './i18n.js';
 
 const Q = new URLSearchParams(location.search);
@@ -106,11 +107,11 @@ async function boot() {
   app.ground = (x, z) => { for (const r of app.rings) if (r.field.contains(x, z)) return r.field.height(x, z) - h0; return null; };
   app.slope = (x, z) => { for (const r of app.rings) if (r.field.contains(x, z, r.ring.res * 2)) return r.field.slopeDeg(x, z, r.ring.res); return 0; };
   const bp = site.pois.find(p => p.kind === 'base'), fp = site.pois.find(p => p.id === site.legs[0].to), hab = app.habitat = new Habitat(app, bp.x, -bp.y, Math.atan2(-(fp.x - bp.x), fp.y - bp.y));
-  app.siteId = SITE; const room = app.room = new ResearchRoom(app, hab, import.meta.env.BASE_URL); const museum = app.museum = new Museum(app, hab, import.meta.env.BASE_URL); const heli = app.heli = new Heli(app, import.meta.env.BASE_URL); const amb = app.ambience = new Ambience(import.meta.env.BASE_URL); const groom = app.globeRoom = new GlobeRoom(app, hab, import.meta.env.BASE_URL);
+  app.siteId = SITE; const room = app.room = new ResearchRoom(app, hab, import.meta.env.BASE_URL); const museum = app.museum = new Museum(app, hab, import.meta.env.BASE_URL); const heli = app.heli = new Heli(app, import.meta.env.BASE_URL); const amb = app.ambience = new Ambience(import.meta.env.BASE_URL); const groom = app.globeRoom = new GlobeRoom(app, hab, import.meta.env.BASE_URL); const deco = app.deco = new BaseDeco(app, hab);
   for (const ev of ['pointerdown', 'keydown', 'touchend']) addEventListener(ev, () => amb.start(), true);   // audio may only start after a gesture
   app.walkGround = (x, z) => hab.groundY(x, z) ?? app.ground(x, z);
   const player = app.player = new Player(renderer, camera, scene, app.walkGround, renderer.domElement);
-  const lim = site.rings[1].half - 30; player.canStandAt = (x, z) => Math.abs(x) < lim && Math.abs(z) < lim && hab.canPass(x, z) && museum.canPass(x, z) && (app.started || hab.indoors(x, z));   // the airlock stays shut until the mission starts
+  const lim = site.rings[1].half - 30; player.canStandAt = (x, z) => Math.abs(x) < lim && Math.abs(z) < lim && hab.canPass(x, z) && museum.canPass(x, z) && deco.canPass(x, z) && (app.started || hab.indoors(x, z));   // the airlock stays shut until the mission starts
   const mission = app.mission = new Mission(site, app.ground);
   const b = mission.base, t1 = mission.target, startYaw = Math.atan2(-(t1.x - b.x), t1.y - b.y);
   const [sx, sz] = hab.startPos(), flat = site.mission.walk.flatSpeed, sl = site.mission.slopeLimitsDeg;
@@ -147,7 +148,7 @@ async function boot() {
     const dt = Math.min(clock.getDelta(), 0.1); shared.uTime.value += dt;
     menu.update(); player.update(dt); if (app.started) mission.idle(dt);
     camera.updateMatrixWorld(); camera.getWorldPosition(cam); shared.uCam.value.copy(cam); sky.position.copy(cam); camera.getWorldDirection(dir);
-    if (!player.lift && app.started) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam); room.update(dt, cam); museum.update(dt, cam); heli.update(dt, cam); groom.update(dt); amb.update(dt, !hab.indoors(cam.x, cam.z));
+    if (!player.lift && app.started) mission.check(cam); pois.update(cam); hud.update(dt); debrief.update(); helmet.update(); arm.update(dt); hab.update(dt, cam); rover.update(dt, cam); globe.update(dt, cam); room.update(dt, cam); museum.update(dt, cam); heli.update(dt, cam); groom.update(dt); deco.update(dt); amb.update(dt, !hab.indoors(cam.x, cam.z));
     const tris = terrain.update(cam, dir, renderer.xr.isPresenting ? 0.2 : 0.35, app.baseRes || 1);
     renderer.render(scene, camera);
     fpsN++; fpsT += dt; if (fpsT > 1) { app.stats = { fps: Math.round(fpsN / fpsT), tris, calls: renderer.info.render.calls }; fpsN = 0; fpsT = 0; }

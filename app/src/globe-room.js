@@ -3,6 +3,7 @@
 // landing coordinates), and the orbiters circle it on their real orbit inclinations. Distances above the surface are not
 // to scale (the real orbits would almost touch the globe). Pictures: renders of the same NASA 3D models as the exhibition.
 import * as THREE from 'three';
+import { hullTex, domeTex } from './base-deco.js';
 import { R, H, DOOR_W, DOOR_H, TUN2, R2, XC } from './habitat.js';
 import { Panel, rrect, text, wrap } from './ui.js';
 import { lang } from './i18n.js';
@@ -74,10 +75,10 @@ export class GlobeRoom {
     const a = Math.asin(DOOR_W / 2 / R2), wallT = (() => { const c = document.createElement('canvas'); c.width = 1024; c.height = 256; const x = c.getContext('2d'), gr = x.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#15161c'); gr.addColorStop(1, '#0b0c10'); x.fillStyle = gr; x.fillRect(0, 0, 1024, 256);
       x.fillStyle = 'rgba(255,255,255,0.5)'; for (let i = 0; i < 160; i++) { x.globalAlpha = Math.random() * 0.8; x.fillRect(Math.random() * 1024, Math.random() * 190, 1.5, 1.5); } x.globalAlpha = 1; x.fillStyle = ACC; x.fillRect(0, 205, 1024, 4);
       const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.repeat.x = 2; return t; })();
-    add(rg, new THREE.CylinderGeometry(R2 + 0.06, R2 + 0.06, HH, 56, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ color: 0xd9d0c4 }), 0, HH / 2);
+    add(rg, new THREE.CylinderGeometry(R2 + 0.06, R2 + 0.06, HH, 56, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ map: hullTex(2) }), 0, HH / 2);
     add(rg, new THREE.CylinderGeometry(R2, R2, HH, 56, 1, true, Math.PI + a, 2 * Math.PI - 2 * a), new THREE.MeshBasicMaterial({ map: wallT, side: THREE.BackSide }), 0, HH / 2);
     add(rg, new THREE.CylinderGeometry(R2 + 0.03, R2 + 0.03, HH - DOOR_H, 6, 1, true, Math.PI - a, 2 * a), col(0xbfb2a2), 0, DOOR_H + (HH - DOOR_H) / 2);
-    const dome = add(rg, new THREE.SphereGeometry(R2 + 0.06, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xd9d0c4 }), 0, HH); dome.scale.y = 0.34;
+    const dome = add(rg, new THREE.SphereGeometry(R2 + 0.06, 48, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ map: domeTex() }), 0, HH); dome.scale.y = 0.34;
     const ceil = add(rg, new THREE.SphereGeometry(R2, 64, 24, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ map: skyTex(), side: THREE.BackSide }), 0, HH); ceil.scale.y = 0.32;
     add(rg, new THREE.CircleGeometry(R2, 56).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x24262c }), 0, 0.005);
     add(rg, new THREE.RingGeometry(RAIL + 0.15, RAIL + 0.3, 64).rotateX(-Math.PI / 2), col(0x3a3d45), 0, 0.008);
